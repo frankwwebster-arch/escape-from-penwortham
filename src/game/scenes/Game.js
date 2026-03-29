@@ -15,9 +15,10 @@ export default class Game extends Phaser.Scene {
     this.roomRight = this.roomLeft + this.roomWidth
     this.roomBottom = this.roomTop + this.roomHeight
     this.wallThickness = 20
+    this.showObstacleDebug = false
 
-    this.playerStartX = 140
-    this.playerStartY = 150
+    this.playerStartX = 150
+    this.playerStartY = 255
     this.playerSpeed = 190
     this.playerFacing = 'down'
 
@@ -40,6 +41,7 @@ export default class Game extends Phaser.Scene {
     this.drawClassroomDecor()
     this.createWalls()
     this.createExit()
+    this.createFurnitureObstacles()
     this.createCoins()
     this.createKey()
     this.createDutyTeacher()
@@ -269,6 +271,36 @@ export default class Game extends Phaser.Scene {
     })
 
     this.updateDoorLook()
+  }
+
+  createFurnitureObstacles() {
+    this.furnitureObstacles = []
+
+    const furnitureRects = [
+      new Phaser.Geom.Rectangle(140, 138, 50, 24),
+      new Phaser.Geom.Rectangle(220, 138, 50, 24),
+      new Phaser.Geom.Rectangle(140, 193, 50, 24),
+      new Phaser.Geom.Rectangle(220, 193, 50, 24),
+      new Phaser.Geom.Rectangle(540, 160, 90, 38),
+      new Phaser.Geom.Rectangle(108, 323, 24, 68),
+      new Phaser.Geom.Rectangle(642, 403, 56, 34)
+    ]
+
+    furnitureRects.forEach((rect) => {
+      this.furnitureObstacles.push(rect)
+      this.obstacles.push(rect)
+
+      if (this.showObstacleDebug) {
+        this.add.rectangle(
+          rect.x + rect.width / 2,
+          rect.y + rect.height / 2,
+          rect.width,
+          rect.height,
+          0xff0000,
+          0.25
+        ).setStrokeStyle(2, 0xaa0000, 0.8)
+      }
+    })
   }
 
   createCoins() {
