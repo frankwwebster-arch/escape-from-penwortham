@@ -26,7 +26,7 @@ export default class Game extends Phaser.Scene {
     this.hasCoin2 = false
     this.hasKey = false
     this.hasExited = false
-    this.hallMonitorDefeated = false
+    this.dutyTeacherDefeated = false
     this.wasTouchingExit = false
     this.attackTimer = 0
     this.attackCooldownTimer = 0
@@ -40,7 +40,7 @@ export default class Game extends Phaser.Scene {
     this.createExit()
     this.createCoins()
     this.createKey()
-    this.createHallMonitor()
+    this.createDutyTeacher()
     this.createPlayer()
     this.createUi()
 
@@ -319,8 +319,8 @@ export default class Game extends Phaser.Scene {
     this.key.setVisible(false)
   }
 
-  createHallMonitor() {
-    this.hallMonitor = {
+  createDutyTeacher() {
+    this.dutyTeacher = {
       x: 420,
       y: 360,
       width: 28,
@@ -331,23 +331,23 @@ export default class Game extends Phaser.Scene {
       direction: 1
     }
 
-    this.hallMonitorShadow = this.add.ellipse(this.hallMonitor.x, this.hallMonitor.y + 18, 30, 12, 0x000000, 0.22)
-    this.hallMonitorBody = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 1, 24, 24, 0x4c6d8b)
+    this.dutyTeacherShadow = this.add.ellipse(this.dutyTeacher.x, this.dutyTeacher.y + 18, 30, 12, 0x000000, 0.22)
+    this.dutyTeacherBody = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 1, 24, 24, 0x4c6d8b)
       .setStrokeStyle(3, 0x27435b)
-    this.hallMonitorShirt = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y - 2, 16, 10, 0xe7eef3)
+    this.dutyTeacherShirt = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 2, 16, 10, 0xe7eef3)
       .setStrokeStyle(1, 0x7a8d9e)
-    this.hallMonitorTie = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 1, 4, 10, 0xd95b5b)
-    this.hallMonitorHead = this.add.circle(this.hallMonitor.x, this.hallMonitor.y - 16, 10, 0xffd4b0)
+    this.dutyTeacherTie = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 1, 4, 10, 0xd95b5b)
+    this.dutyTeacherHead = this.add.circle(this.dutyTeacher.x, this.dutyTeacher.y - 16, 10, 0xffd4b0)
       .setStrokeStyle(2, 0x7c4d39)
-    this.hallMonitorHair = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y - 22, 18, 7, 0x5b4335)
-    this.hallMonitorBadge = this.add.rectangle(this.hallMonitor.x + 6, this.hallMonitor.y + 1, 8, 8, 0xf4d35e)
+    this.dutyTeacherHair = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 22, 18, 7, 0x5b4335)
+    this.dutyTeacherBadge = this.add.rectangle(this.dutyTeacher.x + 6, this.dutyTeacher.y + 1, 8, 8, 0xf4d35e)
       .setStrokeStyle(1, 0x9b7b12)
-    this.hallMonitorClipboard = this.add.rectangle(this.hallMonitor.x - 11, this.hallMonitor.y + 4, 10, 15, 0xf7efcc)
+    this.dutyTeacherClipboard = this.add.rectangle(this.dutyTeacher.x - 11, this.dutyTeacher.y + 4, 10, 15, 0xf7efcc)
       .setAngle(-8)
       .setStrokeStyle(1, 0x7b6c45)
-    this.hallMonitorArms = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 2, 28, 4, 0x354d64)
-    this.hallMonitorShoes = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 15, 18, 5, 0x2a2a33)
-    this.hallMonitorLabel = this.add.text(this.hallMonitor.x - 40, this.hallMonitor.y - 46, 'Hall Monitor', {
+    this.dutyTeacherArms = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 2, 28, 4, 0x354d64)
+    this.dutyTeacherShoes = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 15, 18, 5, 0x2a2a33)
+    this.dutyTeacherLabel = this.add.text(this.dutyTeacher.x - 36, this.dutyTeacher.y - 46, 'Duty Teacher', {
       fontFamily: 'Arial',
       fontSize: '14px',
       color: '#5c2020'
@@ -390,7 +390,7 @@ export default class Game extends Phaser.Scene {
       color: '#fff7dc'
     })
 
-    this.hudSubtitle = this.add.text(48, 54, 'Collect gold, bonk the Hall Monitor, grab the key, then head for the door.', {
+    this.hudSubtitle = this.add.text(48, 54, 'Collect gold, bonk the Duty Teacher, grab the key, then head for the door.', {
       fontFamily: 'Arial',
       fontSize: '14px',
       color: '#d7edf7'
@@ -471,7 +471,7 @@ export default class Game extends Phaser.Scene {
       this.movePlayer(0, direction.y * distance)
     }
 
-    this.updateHallMonitor(dt)
+    this.updateDutyTeacher(dt)
     this.updateAttack(delta)
 
     this.updatePlayerLook()
@@ -480,7 +480,7 @@ export default class Game extends Phaser.Scene {
     this.checkCoinPickup(this.coin2, 'hasCoin2')
     this.checkKeyPickup()
     this.checkAttackHit()
-    this.checkHallMonitorTouch()
+    this.checkDutyTeacherTouch()
     this.checkExit()
     this.updateMessage(delta)
   }
@@ -521,34 +521,34 @@ export default class Game extends Phaser.Scene {
     this.player.y = nextY
   }
 
-  updateHallMonitor(dt) {
-    if (this.hallMonitorDefeated) {
+  updateDutyTeacher(dt) {
+    if (this.dutyTeacherDefeated) {
       return
     }
 
-    this.hallMonitor.x += this.hallMonitor.speed * this.hallMonitor.direction * dt
+    this.dutyTeacher.x += this.dutyTeacher.speed * this.dutyTeacher.direction * dt
 
-    if (this.hallMonitor.x <= this.hallMonitor.leftLimit) {
-      this.hallMonitor.x = this.hallMonitor.leftLimit
-      this.hallMonitor.direction = 1
+    if (this.dutyTeacher.x <= this.dutyTeacher.leftLimit) {
+      this.dutyTeacher.x = this.dutyTeacher.leftLimit
+      this.dutyTeacher.direction = 1
     }
 
-    if (this.hallMonitor.x >= this.hallMonitor.rightLimit) {
-      this.hallMonitor.x = this.hallMonitor.rightLimit
-      this.hallMonitor.direction = -1
+    if (this.dutyTeacher.x >= this.dutyTeacher.rightLimit) {
+      this.dutyTeacher.x = this.dutyTeacher.rightLimit
+      this.dutyTeacher.direction = -1
     }
 
-    this.hallMonitorShadow.setPosition(this.hallMonitor.x, this.hallMonitor.y + 17)
-    this.hallMonitorBody.setPosition(this.hallMonitor.x, this.hallMonitor.y + 1)
-    this.hallMonitorShirt.setPosition(this.hallMonitor.x, this.hallMonitor.y - 2)
-    this.hallMonitorTie.setPosition(this.hallMonitor.x, this.hallMonitor.y + 1)
-    this.hallMonitorHead.setPosition(this.hallMonitor.x, this.hallMonitor.y - 16)
-    this.hallMonitorHair.setPosition(this.hallMonitor.x, this.hallMonitor.y - 22)
-    this.hallMonitorBadge.setPosition(this.hallMonitor.x + 6, this.hallMonitor.y + 1)
-    this.hallMonitorClipboard.setPosition(this.hallMonitor.x - 11, this.hallMonitor.y + 4)
-    this.hallMonitorArms.setPosition(this.hallMonitor.x, this.hallMonitor.y + 2)
-    this.hallMonitorShoes.setPosition(this.hallMonitor.x, this.hallMonitor.y + 15)
-    this.hallMonitorLabel.setPosition(this.hallMonitor.x - 40, this.hallMonitor.y - 46)
+    this.dutyTeacherShadow.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 17)
+    this.dutyTeacherBody.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 1)
+    this.dutyTeacherShirt.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 2)
+    this.dutyTeacherTie.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 1)
+    this.dutyTeacherHead.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 16)
+    this.dutyTeacherHair.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 22)
+    this.dutyTeacherBadge.setPosition(this.dutyTeacher.x + 6, this.dutyTeacher.y + 1)
+    this.dutyTeacherClipboard.setPosition(this.dutyTeacher.x - 11, this.dutyTeacher.y + 4)
+    this.dutyTeacherArms.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 2)
+    this.dutyTeacherShoes.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 15)
+    this.dutyTeacherLabel.setPosition(this.dutyTeacher.x - 36, this.dutyTeacher.y - 46)
   }
 
   startAttack() {
@@ -656,39 +656,39 @@ export default class Game extends Phaser.Scene {
   }
 
   checkAttackHit() {
-    if (this.hallMonitorDefeated || this.attackTimer <= 0 || this.attackHasHit) {
+    if (this.dutyTeacherDefeated || this.attackTimer <= 0 || this.attackHasHit) {
       return
     }
 
     const attackBounds = this.attackSwish.getBounds()
-    const hallMonitorBounds = new Phaser.Geom.Rectangle(
-      this.hallMonitor.x - this.hallMonitor.width / 2,
-      this.hallMonitor.y - this.hallMonitor.height / 2,
-      this.hallMonitor.width,
-      this.hallMonitor.height
+    const dutyTeacherBounds = new Phaser.Geom.Rectangle(
+      this.dutyTeacher.x - this.dutyTeacher.width / 2,
+      this.dutyTeacher.y - this.dutyTeacher.height / 2,
+      this.dutyTeacher.width,
+      this.dutyTeacher.height
     )
 
-    if (Phaser.Geom.Intersects.RectangleToRectangle(attackBounds, hallMonitorBounds)) {
+    if (Phaser.Geom.Intersects.RectangleToRectangle(attackBounds, dutyTeacherBounds)) {
       this.attackHasHit = true
-      this.defeatHallMonitor()
+      this.defeatDutyTeacher()
     }
   }
 
-  defeatHallMonitor() {
-    this.hallMonitorDefeated = true
-    this.hallMonitorBody.setVisible(false)
-    this.hallMonitorShadow.setVisible(false)
-    this.hallMonitorShirt.setVisible(false)
-    this.hallMonitorTie.setVisible(false)
-    this.hallMonitorHead.setVisible(false)
-    this.hallMonitorHair.setVisible(false)
-    this.hallMonitorBadge.setVisible(false)
-    this.hallMonitorClipboard.setVisible(false)
-    this.hallMonitorArms.setVisible(false)
-    this.hallMonitorShoes.setVisible(false)
-    this.hallMonitorLabel.setVisible(false)
-    this.spawnKey(this.hallMonitor.x + 10, this.hallMonitor.y)
-    this.showMessage('Hall Monitor defeated!')
+  defeatDutyTeacher() {
+    this.dutyTeacherDefeated = true
+    this.dutyTeacherBody.setVisible(false)
+    this.dutyTeacherShadow.setVisible(false)
+    this.dutyTeacherShirt.setVisible(false)
+    this.dutyTeacherTie.setVisible(false)
+    this.dutyTeacherHead.setVisible(false)
+    this.dutyTeacherHair.setVisible(false)
+    this.dutyTeacherBadge.setVisible(false)
+    this.dutyTeacherClipboard.setVisible(false)
+    this.dutyTeacherArms.setVisible(false)
+    this.dutyTeacherShoes.setVisible(false)
+    this.dutyTeacherLabel.setVisible(false)
+    this.spawnKey(this.dutyTeacher.x + 10, this.dutyTeacher.y)
+    this.showMessage('You got past the Duty Teacher!')
   }
 
   spawnKey(x, y) {
@@ -696,8 +696,8 @@ export default class Game extends Phaser.Scene {
     this.key.setVisible(true)
   }
 
-  checkHallMonitorTouch() {
-    if (this.hallMonitorDefeated) {
+  checkDutyTeacherTouch() {
+    if (this.dutyTeacherDefeated) {
       return
     }
 
@@ -708,14 +708,14 @@ export default class Game extends Phaser.Scene {
       this.player.height
     )
 
-    const hallMonitorBounds = new Phaser.Geom.Rectangle(
-      this.hallMonitor.x - this.hallMonitor.width / 2,
-      this.hallMonitor.y - this.hallMonitor.height / 2,
-      this.hallMonitor.width,
-      this.hallMonitor.height
+    const dutyTeacherBounds = new Phaser.Geom.Rectangle(
+      this.dutyTeacher.x - this.dutyTeacher.width / 2,
+      this.dutyTeacher.y - this.dutyTeacher.height / 2,
+      this.dutyTeacher.width,
+      this.dutyTeacher.height
     )
 
-    const touching = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, hallMonitorBounds)
+    const touching = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, dutyTeacherBounds)
 
     if (!touching) {
       return
