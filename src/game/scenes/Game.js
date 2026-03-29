@@ -290,15 +290,6 @@ export default class Game extends Phaser.Scene {
     this.exitWindow = this.add.rectangle(this.exit.x - 3, this.exit.y - 24, 9, 18, 0x8fc8e8, 0.8)
       .setStrokeStyle(1, 0x2c5b73)
 
-    this.exitSign = this.add.rectangle(this.roomRight - 55, this.roomTop + 286, 66, 20, 0xf8f2cf)
-      .setStrokeStyle(2, 0x7a6940)
-
-    this.exitSignText = this.add.text(this.roomRight - 76, this.roomTop + 278, 'LOCKED', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#6b2a2a'
-    })
-
     this.updateDoorLook()
   }
 
@@ -1075,11 +1066,7 @@ export default class Game extends Phaser.Scene {
       this.exitOpenGlow.setVisible(true)
       this.exitWindow.setPosition(this.exit.x - 14, this.exit.y - 24)
       this.exitWindow.setFillStyle(0xe7ffd1, 0.95)
-      this.exitSign.setFillStyle(0xe0f4c9)
       this.exitStep.setFillStyle(0xa8c39e)
-      this.exitSignText.setText('OPEN')
-      this.exitSignText.setColor('#215b30')
-      this.exitSignText.setPosition(this.roomRight - 67, this.roomTop + 278)
     } else {
       this.exitArch.setFillStyle(0x6f4123)
       this.exitFrame.setFillStyle(0x58341d)
@@ -1092,11 +1079,7 @@ export default class Game extends Phaser.Scene {
       this.exitOpenGlow.setVisible(false)
       this.exitWindow.setPosition(this.exit.x - 3, this.exit.y - 24)
       this.exitWindow.setFillStyle(0x8fc8e8, 0.8)
-      this.exitSign.setFillStyle(0xf7d7d7)
       this.exitStep.setFillStyle(0x8e989d)
-      this.exitSignText.setText('LOCKED')
-      this.exitSignText.setColor('#8a1f1f')
-      this.exitSignText.setPosition(this.roomRight - 76, this.roomTop + 278)
     }
   }
 
