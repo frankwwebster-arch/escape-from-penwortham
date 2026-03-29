@@ -8,7 +8,7 @@ export default class Game extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#d9f0ff')
 
-    this.add.text(20, 20, 'Escape from Penwortham - Nursery', {
+    this.add.text(20, 20, 'Escape from Penwortham - Nursery Tutorial', {
       fontFamily: 'Arial',
       fontSize: '24px',
       color: '#1a1a1a'
