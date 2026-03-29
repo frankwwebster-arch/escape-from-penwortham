@@ -154,20 +154,24 @@ export default class Game extends Phaser.Scene {
       color: '#5f1d1d'
     })
 
-    this.add.rectangle(190, 426, 88, 44, 0x6fb7a2).setStrokeStyle(2, 0x2c6a59)
-    this.add.rectangle(190, 426, 68, 24, 0xbde8dc, 0.45)
-    this.add.text(160, 418, 'HIDE', {
+    this.add.rectangle(190, 426, 98, 56, 0x4f8f7e).setStrokeStyle(3, 0x245447)
+    this.add.rectangle(190, 426, 84, 42, 0x7bc3b0, 0.9).setStrokeStyle(2, 0xdff8ef, 0.4)
+    this.add.rectangle(168, 426, 30, 42, 0x1f5b4b, 0.55)
+    this.add.rectangle(212, 426, 30, 42, 0x1f5b4b, 0.55)
+    this.add.circle(190, 405, 6, 0xfff4a8, 0.9)
+    this.add.text(154, 418, 'HIDE HERE', {
       fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#17473c'
+      fontSize: '13px',
+      color: '#103c33'
     })
 
-    this.add.rectangle(670, 420, 70, 48, 0x7c56b1).setStrokeStyle(2, 0x412a67)
-    this.add.rectangle(670, 420, 52, 14, 0xa88bd5, 0.45)
-    this.add.text(648, 412, 'CUBBY', {
+    this.add.rectangle(670, 420, 70, 48, 0x8f7a63).setStrokeStyle(2, 0x584533)
+    this.add.rectangle(670, 409, 52, 12, 0xd9c3a1, 0.8)
+    this.add.rectangle(670, 429, 52, 18, 0x735d49, 0.35)
+    this.add.text(650, 412, 'TRAYS', {
       fontFamily: 'Arial',
       fontSize: '12px',
-      color: '#f6ecff'
+      color: '#fff6e8'
     })
   }
 
@@ -274,6 +278,10 @@ export default class Game extends Phaser.Scene {
     ).setStrokeStyle(2, 0x59371c)
 
     this.exitHandle = this.add.circle(this.exit.x + 2, this.exit.y, 3, 0xffd54f)
+    this.exitLockBar = this.add.rectangle(this.exit.x - 3, this.exit.y + 8, 18, 10, 0xb73939)
+      .setStrokeStyle(2, 0x6b1d1d)
+    this.exitOpenGlow = this.add.ellipse(this.exit.x - 14, this.exit.y, 30, 96, 0xbff7a8, 0.45)
+      .setVisible(false)
     this.exitStep = this.add.rectangle(this.exit.x - 6, this.exit.y + 58, 34, 8, 0x8e989d).setStrokeStyle(2, 0x61686c)
 
     this.exitWindow = this.add.rectangle(this.exit.x - 3, this.exit.y - 24, 9, 18, 0x8fc8e8, 0.8)
@@ -1024,10 +1032,15 @@ export default class Game extends Phaser.Scene {
     if (this.hasKey) {
       this.exitArch.setFillStyle(0x2d6940)
       this.exitFrame.setFillStyle(0x265b34)
-      this.exitDoor.setFillStyle(0x3ea35a)
+      this.exitDoor.setFillStyle(0x5ccb6c)
       this.exitDoor.setStrokeStyle(2, 0x1f5c31)
+      this.exitDoor.setPosition(this.exit.x - 14, this.exit.y)
+      this.exitHandle.setPosition(this.exit.x - 8, this.exit.y)
       this.exitHandle.setFillStyle(0xfff1a8)
-      this.exitWindow.setFillStyle(0xcaf4ae, 0.9)
+      this.exitLockBar.setVisible(false)
+      this.exitOpenGlow.setVisible(true)
+      this.exitWindow.setPosition(this.exit.x - 14, this.exit.y - 24)
+      this.exitWindow.setFillStyle(0xe7ffd1, 0.95)
       this.exitSign.setFillStyle(0xe0f4c9)
       this.exitStep.setFillStyle(0xa8c39e)
       this.exitSignText.setText('OPEN')
@@ -1036,14 +1049,19 @@ export default class Game extends Phaser.Scene {
     } else {
       this.exitArch.setFillStyle(0x6f4123)
       this.exitFrame.setFillStyle(0x58341d)
-      this.exitDoor.setFillStyle(0x8b5a2b)
+      this.exitDoor.setFillStyle(0x915533)
       this.exitDoor.setStrokeStyle(2, 0x59371c)
+      this.exitDoor.setPosition(this.exit.x - 3, this.exit.y)
+      this.exitHandle.setPosition(this.exit.x + 2, this.exit.y)
       this.exitHandle.setFillStyle(0xffd54f)
+      this.exitLockBar.setVisible(true)
+      this.exitOpenGlow.setVisible(false)
+      this.exitWindow.setPosition(this.exit.x - 3, this.exit.y - 24)
       this.exitWindow.setFillStyle(0x8fc8e8, 0.8)
-      this.exitSign.setFillStyle(0xf8f2cf)
+      this.exitSign.setFillStyle(0xf7d7d7)
       this.exitStep.setFillStyle(0x8e989d)
       this.exitSignText.setText('LOCKED')
-      this.exitSignText.setColor('#6b2a2a')
+      this.exitSignText.setColor('#8a1f1f')
       this.exitSignText.setPosition(this.roomRight - 76, this.roomTop + 278)
     }
   }
