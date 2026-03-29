@@ -35,12 +35,15 @@ export default class Game extends Phaser.Scene {
     this.hasExited = false
     this.isGameOver = false
     this.dutyTeacherDefeated = false
+    this.dutyTeacherFacing = 'right'
     this.wasTouchingExit = false
     this.attackTimer = 0
     this.attackCooldownTimer = 0
     this.attackDuration = 150
     this.attackCooldown = 350
     this.attackHasHit = false
+    this.caughtCooldownTimer = 0
+    this.caughtCooldownDuration = 700
 
     this.drawFloor()
     this.drawClassroomDecor()
@@ -398,6 +401,7 @@ export default class Game extends Phaser.Scene {
       direction: 1
     }
 
+    this.dutyTeacherVisionCone = this.add.graphics().setDepth(3)
     this.dutyTeacherShadow = this.add.ellipse(this.dutyTeacher.x, this.dutyTeacher.y + 18, 30, 12, 0x000000, 0.22)
     this.dutyTeacherBody = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 1, 24, 24, 0x4c6d8b)
       .setStrokeStyle(3, 0x27435b)
@@ -419,6 +423,8 @@ export default class Game extends Phaser.Scene {
       fontSize: '14px',
       color: '#5c2020'
     })
+
+    this.updateDutyTeacherVisionCone()
   }
 
   createPlayer() {
@@ -674,6 +680,14 @@ export default class Game extends Phaser.Scene {
     let moveX = 0
     let moveY = 0
 
+    if (this.caughtCooldownTimer > 0) {
+      this.caughtCooldownTimer -= delta
+
+      if (this.caughtCooldownTimer < 0) {
+        this.caughtCooldownTimer = 0
+      }
+    }
+
     if (Phaser.Input.Keyboard.JustDown(this.hideKey) && inCubbyZone) {
       this.isHiding = !this.isHiding
       this.setPlayerAlpha(this.isHiding ? 0.4 : 1)
@@ -760,21 +774,26 @@ export default class Game extends Phaser.Scene {
 
   updateDutyTeacher(dt) {
     if (this.dutyTeacherDefeated) {
+      this.dutyTeacherVisionCone.setVisible(false)
       return
     }
 
     this.dutyTeacher.x += this.dutyTeacher.speed * this.dutyTeacher.direction * dt
+    this.dutyTeacherFacing = this.dutyTeacher.direction >= 0 ? 'right' : 'left'
 
     if (this.dutyTeacher.x <= this.dutyTeacher.leftLimit) {
       this.dutyTeacher.x = this.dutyTeacher.leftLimit
       this.dutyTeacher.direction = 1
+      this.dutyTeacherFacing = 'right'
     }
 
     if (this.dutyTeacher.x >= this.dutyTeacher.rightLimit) {
       this.dutyTeacher.x = this.dutyTeacher.rightLimit
       this.dutyTeacher.direction = -1
+      this.dutyTeacherFacing = 'left'
     }
 
+    this.updateDutyTeacherVisionCone()
     this.dutyTeacherShadow.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 17)
     this.dutyTeacherBody.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 1)
     this.dutyTeacherShirt.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 2)
@@ -907,6 +926,7 @@ export default class Game extends Phaser.Scene {
 
   defeatDutyTeacher() {
     this.dutyTeacherDefeated = true
+    this.dutyTeacherVisionCone.setVisible(false)
     this.dutyTeacherBody.setVisible(false)
     this.dutyTeacherShadow.setVisible(false)
     this.dutyTeacherShirt.setVisible(false)
@@ -936,12 +956,26 @@ export default class Game extends Phaser.Scene {
       return
     }
 
+    if (this.caughtCooldownTimer > 0) {
+      return
+    }
+
+    if (this.isPlayerInTeacherVisionCone()) {
+      this.catchPlayer()
+      return
+    }
+
     const touching = this.rectsOverlap(this.getPlayerBounds(), this.getTeacherBounds())
 
     if (!touching) {
       return
     }
 
+    this.catchPlayer()
+  }
+
+  catchPlayer() {
+    this.caughtCooldownTimer = this.caughtCooldownDuration
     this.lives -= 1
     this.updateLivesUi()
     this.showMessage('Caught!')
@@ -1066,6 +1100,17 @@ export default class Game extends Phaser.Scene {
     }
   }
 
+  updateDutyTeacherVisionCone() {
+    const triangle = this.getDutyTeacherVisionTriangle()
+
+    this.dutyTeacherVisionCone.clear()
+    this.dutyTeacherVisionCone.setVisible(true)
+    this.dutyTeacherVisionCone.fillStyle(0xffe38a, 0.32)
+    this.dutyTeacherVisionCone.lineStyle(2, 0xd99a2b, 0.5)
+    this.dutyTeacherVisionCone.fillTriangleShape(triangle)
+    this.dutyTeacherVisionCone.strokeTriangleShape(triangle)
+  }
+
   updatePlayerLook() {
     this.playerShadow.setPosition(this.player.x, this.player.y + 18)
     this.playerBody.setPosition(this.player.x, this.player.y + 1)
@@ -1136,6 +1181,38 @@ export default class Game extends Phaser.Scene {
     this.gameOverText.setVisible(true)
     this.restartText.setText('Press R to restart')
     this.restartText.setVisible(true)
+  }
+
+  getDutyTeacherVisionTriangle() {
+    const coneLength = 110
+    const coneHalfHeight = 52
+    const startX = this.dutyTeacherFacing === 'right'
+      ? this.dutyTeacher.x + 10
+      : this.dutyTeacher.x - 10
+    const tipX = this.dutyTeacherFacing === 'right'
+      ? startX + coneLength
+      : startX - coneLength
+    const centerY = this.dutyTeacher.y + 1
+
+    return new Phaser.Geom.Triangle(
+      startX,
+      centerY,
+      tipX,
+      centerY - coneHalfHeight,
+      tipX,
+      centerY + coneHalfHeight
+    )
+  }
+
+  isPlayerInTeacherVisionCone() {
+    const playerCenterX = this.player.x
+    const playerCenterY = this.player.y
+
+    return Phaser.Geom.Triangle.Contains(
+      this.getDutyTeacherVisionTriangle(),
+      playerCenterX,
+      playerCenterY
+    )
   }
 
   getPlayerBounds() {
