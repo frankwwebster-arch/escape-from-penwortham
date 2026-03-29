@@ -19,13 +19,18 @@ export default class Game extends Phaser.Scene {
     this.playerStartX = 140
     this.playerStartY = 150
     this.playerSpeed = 190
+    this.playerFacing = 'down'
 
     this.score = 0
     this.hasCoin = false
     this.hasCoin2 = false
     this.hasKey = false
     this.hasExited = false
+    this.hallMonitorDefeated = false
     this.wasTouchingExit = false
+    this.attackTimer = 0
+    this.attackDuration = 140
+    this.attackHasHit = false
 
     this.drawFloor()
     this.drawClassroomDecor()
@@ -38,6 +43,7 @@ export default class Game extends Phaser.Scene {
     this.createUi()
 
     this.cursors = this.input.keyboard.createCursorKeys()
+    this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
   }
 
   drawFloor() {
@@ -47,7 +53,7 @@ export default class Game extends Phaser.Scene {
       color: '#1a1a1a'
     })
 
-    this.add.text(20, 56, 'Collect gold, find the key, then head for the door.', {
+    this.add.text(20, 56, 'Collect gold, bonk the Hall Monitor, grab the key, then head for the door.', {
       fontFamily: 'Arial',
       fontSize: '16px',
       color: '#2b2b2b'
@@ -212,6 +218,8 @@ export default class Game extends Phaser.Scene {
       repeat: -1,
       ease: 'Sine.easeInOut'
     })
+
+    this.key.setVisible(false)
   }
 
   createHallMonitor() {
@@ -280,6 +288,10 @@ export default class Game extends Phaser.Scene {
       this.player.height,
       0x3b82f6
     ).setStrokeStyle(3, 0x163d7a)
+
+    this.attackSwish = this.add.rectangle(this.player.x, this.player.y, 24, 14, 0xffffff, 0.4)
+      .setStrokeStyle(2, 0x163d7a)
+      .setVisible(false)
   }
 
   createUi() {
@@ -317,15 +329,23 @@ export default class Game extends Phaser.Scene {
 
     if (this.cursors.left.isDown) {
       moveX -= 1
+      this.playerFacing = 'left'
     }
     if (this.cursors.right.isDown) {
       moveX += 1
+      this.playerFacing = 'right'
     }
     if (this.cursors.up.isDown) {
       moveY -= 1
+      this.playerFacing = 'up'
     }
     if (this.cursors.down.isDown) {
       moveY += 1
+      this.playerFacing = 'down'
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.attackKey) && this.attackTimer <= 0) {
+      this.startAttack()
     }
 
     if (moveX !== 0 || moveY !== 0) {
@@ -337,6 +357,7 @@ export default class Game extends Phaser.Scene {
     }
 
     this.updateHallMonitor(dt)
+    this.updateAttack(delta)
 
     this.playerBody.setPosition(this.player.x, this.player.y)
     this.playerShadow.setPosition(this.player.x, this.player.y + 14)
@@ -344,6 +365,7 @@ export default class Game extends Phaser.Scene {
     this.checkCoinPickup(this.coin, 'hasCoin')
     this.checkCoinPickup(this.coin2, 'hasCoin2')
     this.checkKeyPickup()
+    this.checkAttackHit()
     this.checkHallMonitorTouch()
     this.checkExit()
     this.updateMessage(delta)
@@ -373,6 +395,10 @@ export default class Game extends Phaser.Scene {
   }
 
   updateHallMonitor(dt) {
+    if (this.hallMonitorDefeated) {
+      return
+    }
+
     this.hallMonitor.x += this.hallMonitor.speed * this.hallMonitor.direction * dt
 
     if (this.hallMonitor.x <= this.hallMonitor.leftLimit) {
@@ -389,6 +415,59 @@ export default class Game extends Phaser.Scene {
     this.hallMonitorShadow.setPosition(this.hallMonitor.x, this.hallMonitor.y + 15)
     this.hallMonitorBadge.setPosition(this.hallMonitor.x, this.hallMonitor.y - 4)
     this.hallMonitorLabel.setPosition(this.hallMonitor.x - 36, this.hallMonitor.y - 34)
+  }
+
+  startAttack() {
+    this.attackTimer = this.attackDuration
+    this.attackHasHit = false
+    this.attackSwish.setAlpha(1)
+    this.attackSwish.setVisible(true)
+    this.updateAttackSwish()
+  }
+
+  updateAttack(delta) {
+    if (this.attackTimer <= 0) {
+      this.attackSwish.setVisible(false)
+      return
+    }
+
+    this.attackTimer -= delta
+    this.updateAttackSwish()
+
+    if (this.attackTimer <= 0) {
+      this.attackTimer = 0
+      this.attackSwish.setVisible(false)
+    }
+  }
+
+  updateAttackSwish() {
+    const offset = 24
+    let swishX = this.player.x
+    let swishY = this.player.y
+    let swishWidth = 24
+    let swishHeight = 14
+
+    if (this.playerFacing === 'left') {
+      swishX -= offset
+      swishWidth = 20
+      swishHeight = 26
+    } else if (this.playerFacing === 'right') {
+      swishX += offset
+      swishWidth = 20
+      swishHeight = 26
+    } else if (this.playerFacing === 'up') {
+      swishY -= offset
+      swishWidth = 26
+      swishHeight = 20
+    } else {
+      swishY += offset
+      swishWidth = 26
+      swishHeight = 20
+    }
+
+    this.attackSwish.setPosition(swishX, swishY)
+    this.attackSwish.setSize(swishWidth, swishHeight)
+    this.attackSwish.setDisplaySize(swishWidth, swishHeight)
   }
 
   checkCoinPickup(coinShape, flagName) {
@@ -413,7 +492,7 @@ export default class Game extends Phaser.Scene {
   }
 
   checkKeyPickup() {
-    if (this.hasKey) {
+    if (this.hasKey || !this.key.visible) {
       return
     }
 
@@ -427,11 +506,49 @@ export default class Game extends Phaser.Scene {
     if (distance < 28) {
       this.hasKey = true
       this.key.setVisible(false)
-      this.showMessage('You found a key!')
+      this.showMessage('You got the key!')
     }
   }
 
+  checkAttackHit() {
+    if (this.hallMonitorDefeated || this.attackTimer <= 0 || this.attackHasHit) {
+      return
+    }
+
+    const attackBounds = this.attackSwish.getBounds()
+    const hallMonitorBounds = new Phaser.Geom.Rectangle(
+      this.hallMonitor.x - this.hallMonitor.width / 2,
+      this.hallMonitor.y - this.hallMonitor.height / 2,
+      this.hallMonitor.width,
+      this.hallMonitor.height
+    )
+
+    if (Phaser.Geom.Intersects.RectangleToRectangle(attackBounds, hallMonitorBounds)) {
+      this.attackHasHit = true
+      this.defeatHallMonitor()
+    }
+  }
+
+  defeatHallMonitor() {
+    this.hallMonitorDefeated = true
+    this.hallMonitorBody.setVisible(false)
+    this.hallMonitorShadow.setVisible(false)
+    this.hallMonitorBadge.setVisible(false)
+    this.hallMonitorLabel.setVisible(false)
+    this.spawnKey(this.hallMonitor.x + 10, this.hallMonitor.y)
+    this.showMessage('Hall Monitor defeated!')
+  }
+
+  spawnKey(x, y) {
+    this.key.setPosition(x, y)
+    this.key.setVisible(true)
+  }
+
   checkHallMonitorTouch() {
+    if (this.hallMonitorDefeated) {
+      return
+    }
+
     const playerBounds = new Phaser.Geom.Rectangle(
       this.player.x - this.player.width / 2,
       this.player.y - this.player.height / 2,
@@ -486,7 +603,7 @@ export default class Game extends Phaser.Scene {
       this.exitDoor.setFillStyle(0x9b6a38)
       this.showMessage('Unlocked! Home time!')
     } else if (!this.wasTouchingExit) {
-      this.showMessage('Door is locked. Find the key!')
+      this.showMessage('Door is locked.')
     }
 
     this.wasTouchingExit = true
