@@ -29,7 +29,9 @@ export default class Game extends Phaser.Scene {
     this.hallMonitorDefeated = false
     this.wasTouchingExit = false
     this.attackTimer = 0
-    this.attackDuration = 140
+    this.attackCooldownTimer = 0
+    this.attackDuration = 150
+    this.attackCooldown = 350
     this.attackHasHit = false
 
     this.drawFloor()
@@ -344,7 +346,11 @@ export default class Game extends Phaser.Scene {
       this.playerFacing = 'down'
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.attackKey) && this.attackTimer <= 0) {
+    if (
+      Phaser.Input.Keyboard.JustDown(this.attackKey) &&
+      this.attackTimer <= 0 &&
+      this.attackCooldownTimer <= 0
+    ) {
       this.startAttack()
     }
 
@@ -419,6 +425,7 @@ export default class Game extends Phaser.Scene {
 
   startAttack() {
     this.attackTimer = this.attackDuration
+    this.attackCooldownTimer = this.attackCooldown
     this.attackHasHit = false
     this.attackSwish.setAlpha(1)
     this.attackSwish.setVisible(true)
@@ -426,6 +433,14 @@ export default class Game extends Phaser.Scene {
   }
 
   updateAttack(delta) {
+    if (this.attackCooldownTimer > 0) {
+      this.attackCooldownTimer -= delta
+
+      if (this.attackCooldownTimer < 0) {
+        this.attackCooldownTimer = 0
+      }
+    }
+
     if (this.attackTimer <= 0) {
       this.attackSwish.setVisible(false)
       return
