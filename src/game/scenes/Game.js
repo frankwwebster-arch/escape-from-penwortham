@@ -161,6 +161,13 @@ export default class Game extends Phaser.Scene {
       height: 120
     }
 
+    this.lockedDoorBlock = {
+      x: this.roomRight - this.wallThickness,
+      y: this.exit.y - this.exit.height / 2,
+      width: this.wallThickness,
+      height: this.exit.height
+    }
+
     this.exitFrame = this.add.rectangle(
       this.exit.x,
       this.exit.y,
@@ -392,6 +399,19 @@ export default class Game extends Phaser.Scene {
       const wallRect = new Phaser.Geom.Rectangle(wall.x, wall.y, wall.width, wall.height)
 
       if (Phaser.Geom.Intersects.RectangleToRectangle(nextBounds, wallRect)) {
+        return
+      }
+    }
+
+    if (!this.hasKey) {
+      const lockedDoorRect = new Phaser.Geom.Rectangle(
+        this.lockedDoorBlock.x,
+        this.lockedDoorBlock.y,
+        this.lockedDoorBlock.width,
+        this.lockedDoorBlock.height
+      )
+
+      if (Phaser.Geom.Intersects.RectangleToRectangle(nextBounds, lockedDoorRect)) {
         return
       }
     }
