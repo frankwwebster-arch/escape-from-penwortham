@@ -23,7 +23,8 @@ export default class Game extends Phaser.Scene {
     this.room = this.add.rectangle(400, 320, 700, 500, 0xf5f0dc)
     this.room.setStrokeStyle(4, 0x444444)
 
-    this.exit = this.add.rectangle(720, 320, 40, 100, 0x66bb6a)
+    this.exit = this.add.rectangle(720, 320, 50, 110, 0x8b5a2b)
+    this.add.circle(735, 320, 4, 0xffd700) // door handle
     this.add.text(686, 380, 'EXIT', {
       fontFamily: 'Arial',
       fontSize: '14px',
