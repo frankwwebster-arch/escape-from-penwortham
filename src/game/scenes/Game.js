@@ -23,6 +23,7 @@ export default class Game extends Phaser.Scene {
     this.score = 0
     this.hasCoin = false
     this.hasCoin2 = false
+    this.hasKey = false
     this.hasExited = false
     this.wasTouchingExit = false
 
@@ -31,6 +32,7 @@ export default class Game extends Phaser.Scene {
     this.createWalls()
     this.createExit()
     this.createCoins()
+    this.createKey()
     this.createHallMonitor()
     this.createPlayer()
     this.createUi()
@@ -45,7 +47,7 @@ export default class Game extends Phaser.Scene {
       color: '#1a1a1a'
     })
 
-    this.add.text(20, 56, 'Collect both gold coins, then head for the door.', {
+    this.add.text(20, 56, 'Collect gold, find the key, then head for the door.', {
       fontFamily: 'Arial',
       fontSize: '16px',
       color: '#2b2b2b'
@@ -191,6 +193,27 @@ export default class Game extends Phaser.Scene {
     })
   }
 
+  createKey() {
+    this.key = this.add.container(505, 245)
+
+    const keyHead = this.add.circle(0, 0, 9, 0x6cc6ff).setStrokeStyle(3, 0x1f6f99)
+    const keyHole = this.add.circle(0, 0, 3, 0xe9ddb8)
+    const keyStem = this.add.rectangle(16, 0, 24, 6, 0x6cc6ff).setStrokeStyle(2, 0x1f6f99)
+    const keyToothTop = this.add.rectangle(24, -5, 5, 7, 0x6cc6ff).setStrokeStyle(2, 0x1f6f99)
+    const keyToothBottom = this.add.rectangle(18, 5, 5, 7, 0x6cc6ff).setStrokeStyle(2, 0x1f6f99)
+
+    this.key.add([keyHead, keyHole, keyStem, keyToothTop, keyToothBottom])
+
+    this.tweens.add({
+      targets: this.key,
+      angle: 8,
+      duration: 700,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    })
+  }
+
   createHallMonitor() {
     this.hallMonitor = {
       x: 420,
@@ -320,6 +343,7 @@ export default class Game extends Phaser.Scene {
 
     this.checkCoinPickup(this.coin, 'hasCoin')
     this.checkCoinPickup(this.coin2, 'hasCoin2')
+    this.checkKeyPickup()
     this.checkHallMonitorTouch()
     this.checkExit()
     this.updateMessage(delta)
@@ -384,12 +408,26 @@ export default class Game extends Phaser.Scene {
       coinShape.setVisible(false)
       this.score += 1
       this.scoreText.setText(`Gold: ${this.score} / 2`)
+      this.showMessage('Gold collected!')
+    }
+  }
 
-      if (this.score === 2) {
-        this.showMessage('Home Time door unlocked!')
-      } else {
-        this.showMessage('Gold collected!')
-      }
+  checkKeyPickup() {
+    if (this.hasKey) {
+      return
+    }
+
+    const distance = Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y,
+      this.key.x,
+      this.key.y
+    )
+
+    if (distance < 28) {
+      this.hasKey = true
+      this.key.setVisible(false)
+      this.showMessage('You found a key!')
     }
   }
 
@@ -443,12 +481,12 @@ export default class Game extends Phaser.Scene {
       return
     }
 
-    if (this.hasCoin && this.hasCoin2) {
+    if (this.hasKey) {
       this.hasExited = true
       this.exitDoor.setFillStyle(0x9b6a38)
-      this.showMessage('You found both coins and escaped!')
+      this.showMessage('Unlocked! Home time!')
     } else if (!this.wasTouchingExit) {
-      this.showMessage('Door is locked. Collect the gold!')
+      this.showMessage('Door is locked. Find the key!')
     }
 
     this.wasTouchingExit = true
