@@ -22,10 +22,12 @@ export default class Game extends Phaser.Scene {
     this.playerFacing = 'down'
 
     this.score = 0
+    this.lives = 3
     this.hasCoin = false
     this.hasCoin2 = false
     this.hasKey = false
     this.hasExited = false
+    this.isGameOver = false
     this.dutyTeacherDefeated = false
     this.wasTouchingExit = false
     this.attackTimer = 0
@@ -43,9 +45,12 @@ export default class Game extends Phaser.Scene {
     this.createDutyTeacher()
     this.createPlayer()
     this.createUi()
+    this.createLivesUi()
 
     this.cursors = this.input.keyboard.createCursorKeys()
     this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    this.restartKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
+    this.updateLivesUi()
   }
 
   drawFloor() {
@@ -432,7 +437,58 @@ export default class Game extends Phaser.Scene {
     this.updateHud()
   }
 
+  createLivesUi() {
+    this.hearts = []
+
+    this.livesBadge = this.add.rectangle(785, 34, 118, 38, 0xf9d8d8).setStrokeStyle(2, 0xa34d4d)
+    this.livesLabel = this.add.text(742, 24, 'Lives', {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#6b2323'
+    })
+
+    for (let i = 0; i < 3; i += 1) {
+      const heartX = 790 + i * 24
+      const heartY = 34
+      const heart = this.add.container(heartX, heartY)
+      const leftLobe = this.add.circle(-5, -3, 6, 0xe14b5a)
+      const rightLobe = this.add.circle(5, -3, 6, 0xe14b5a)
+      const point = this.add.triangle(0, 4, -11, -1, 11, -1, 0, 12, 0xe14b5a)
+      const shine = this.add.circle(-3, -5, 2, 0xffffff, 0.35)
+
+      heart.add([leftLobe, rightLobe, point, shine])
+      this.hearts.push(heart)
+    }
+
+    this.gameOverText = this.add.text(400, 260, 'Game Over', {
+      fontFamily: 'Arial',
+      fontSize: '48px',
+      color: '#fff7dc'
+    })
+      .setOrigin(0.5)
+      .setDepth(30)
+      .setVisible(false)
+
+    this.restartText = this.add.text(400, 310, 'Press R to restart', {
+      fontFamily: 'Arial',
+      fontSize: '24px',
+      color: '#fff7dc'
+    })
+      .setOrigin(0.5)
+      .setDepth(30)
+      .setVisible(false)
+  }
+
   update(time, delta) {
+    if (this.isGameOver) {
+      if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
+        this.scene.restart()
+      }
+
+      this.updateMessage(delta)
+      return
+    }
+
     if (this.hasExited) {
       this.updateMessage(delta)
       return
@@ -696,10 +752,18 @@ export default class Game extends Phaser.Scene {
       return
     }
 
-    this.player.x = this.playerStartX
-    this.player.y = this.playerStartY
-    this.updatePlayerLook()
-    this.showMessage('Tagged! Back to start.')
+    this.lives -= 1
+    this.updateLivesUi()
+    this.showMessage('Caught!')
+
+    if (this.lives > 0) {
+      this.player.x = this.playerStartX
+      this.player.y = this.playerStartY
+      this.updatePlayerLook()
+      return
+    }
+
+    this.triggerGameOver()
   }
 
   checkExit() {
@@ -837,6 +901,18 @@ export default class Game extends Phaser.Scene {
     this.playerFaceMarker.setPosition(markerX, markerY)
     this.playerFaceMarker.setSize(markerWidth, markerHeight)
     this.playerFaceMarker.setDisplaySize(markerWidth, markerHeight)
+  }
+
+  updateLivesUi() {
+    this.hearts.forEach((heart, index) => {
+      heart.setVisible(index < this.lives)
+    })
+  }
+
+  triggerGameOver() {
+    this.isGameOver = true
+    this.gameOverText.setVisible(true)
+    this.restartText.setVisible(true)
   }
 
   getPlayerBounds() {
