@@ -56,7 +56,7 @@ export default class Game extends Phaser.Scene {
     this.createTitleScreen()
     this.createLevelSelectScreen()
 
-    this.cubbyZone = new Phaser.Geom.Rectangle(610, 406, 28, 30)
+    this.cubbyZone = new Phaser.Geom.Rectangle(158, 410, 64, 32)
 
     this.cursors = this.input.keyboard.createCursorKeys()
     this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
@@ -152,6 +152,14 @@ export default class Game extends Phaser.Scene {
       fontFamily: 'Arial',
       fontSize: '12px',
       color: '#5f1d1d'
+    })
+
+    this.add.rectangle(190, 426, 88, 44, 0x6fb7a2).setStrokeStyle(2, 0x2c6a59)
+    this.add.rectangle(190, 426, 68, 24, 0xbde8dc, 0.45)
+    this.add.text(160, 418, 'HIDE', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#17473c'
     })
 
     this.add.rectangle(670, 420, 70, 48, 0x7c56b1).setStrokeStyle(2, 0x412a67)
@@ -1083,7 +1091,7 @@ export default class Game extends Phaser.Scene {
     const inCubbyZone = this.rectsOverlap(this.getPlayerBounds(), this.cubbyZone)
     this.hiddenText.setPosition(this.player.x, this.player.y - 34)
     this.hiddenText.setVisible(this.isHiding || inCubbyZone)
-    this.hiddenText.setText(this.isHiding ? 'Hidden' : 'Hide')
+    this.hiddenText.setText(this.isHiding ? 'Hidden' : 'Press SHIFT to hide')
   }
 
   setPlayerAlpha(alpha) {
