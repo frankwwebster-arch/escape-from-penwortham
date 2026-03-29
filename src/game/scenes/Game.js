@@ -331,22 +331,22 @@ export default class Game extends Phaser.Scene {
       direction: 1
     }
 
-    this.hallMonitorShadow = this.add.ellipse(this.hallMonitor.x, this.hallMonitor.y + 17, 30, 12, 0x000000, 0.22)
-    this.hallMonitorCape = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 5, 26, 26, 0x8f2830, 0.9)
-      .setStrokeStyle(2, 0x54151b)
-    this.hallMonitorBody = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 2, 22, 22, 0xdb5a5a)
-      .setStrokeStyle(3, 0x731f1f)
-    this.hallMonitorHead = this.add.circle(this.hallMonitor.x, this.hallMonitor.y - 14, 10, 0xffd4b0)
+    this.hallMonitorShadow = this.add.ellipse(this.hallMonitor.x, this.hallMonitor.y + 18, 30, 12, 0x000000, 0.22)
+    this.hallMonitorBody = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 1, 24, 24, 0x4c6d8b)
+      .setStrokeStyle(3, 0x27435b)
+    this.hallMonitorShirt = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y - 2, 16, 10, 0xe7eef3)
+      .setStrokeStyle(1, 0x7a8d9e)
+    this.hallMonitorTie = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 1, 4, 10, 0xd95b5b)
+    this.hallMonitorHead = this.add.circle(this.hallMonitor.x, this.hallMonitor.y - 16, 10, 0xffd4b0)
       .setStrokeStyle(2, 0x7c4d39)
-    this.hallMonitorCap = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y - 22, 20, 8, 0x7f2d2d)
-      .setStrokeStyle(2, 0x4e1818)
-    this.hallMonitorVisor = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y - 17, 14, 3, 0xf2d98a)
-    this.hallMonitorBadge = this.add.rectangle(this.hallMonitor.x + 5, this.hallMonitor.y + 1, 8, 8, 0xf4d35e)
+    this.hallMonitorHair = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y - 22, 18, 7, 0x5b4335)
+    this.hallMonitorBadge = this.add.rectangle(this.hallMonitor.x + 6, this.hallMonitor.y + 1, 8, 8, 0xf4d35e)
       .setStrokeStyle(1, 0x9b7b12)
-    this.hallMonitorClipboard = this.add.rectangle(this.hallMonitor.x - 8, this.hallMonitor.y + 4, 8, 14, 0xf7efcc)
-      .setAngle(-12)
+    this.hallMonitorClipboard = this.add.rectangle(this.hallMonitor.x - 11, this.hallMonitor.y + 4, 10, 15, 0xf7efcc)
+      .setAngle(-8)
       .setStrokeStyle(1, 0x7b6c45)
-    this.hallMonitorBoots = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 14, 18, 5, 0x4f2323)
+    this.hallMonitorArms = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 2, 28, 4, 0x354d64)
+    this.hallMonitorShoes = this.add.rectangle(this.hallMonitor.x, this.hallMonitor.y + 15, 18, 5, 0x2a2a33)
     this.hallMonitorLabel = this.add.text(this.hallMonitor.x - 40, this.hallMonitor.y - 46, 'Hall Monitor', {
       fontFamily: 'Arial',
       fontSize: '14px',
@@ -362,25 +362,24 @@ export default class Game extends Phaser.Scene {
       height: 26
     }
 
-    this.playerShadow = this.add.ellipse(this.player.x, this.player.y + 17, 28, 12, 0x000000, 0.24)
-    this.playerCape = this.add.rectangle(this.player.x, this.player.y + 4, 24, 24, 0x2d66cc, 0.92)
-      .setStrokeStyle(2, 0x14335f)
-    this.playerBody = this.add.rectangle(this.player.x, this.player.y + 2, 20, 22, 0x4d98ff)
-      .setStrokeStyle(3, 0x163d7a)
-    this.playerHead = this.add.circle(this.player.x, this.player.y - 14, 10, 0xffd9b8)
+    this.playerShadow = this.add.ellipse(this.player.x, this.player.y + 18, 28, 12, 0x000000, 0.24)
+    this.playerBody = this.add.rectangle(this.player.x, this.player.y + 1, 22, 18, 0xc94d4d)
+      .setStrokeStyle(3, 0x7d2424)
+    this.playerCollar = this.add.rectangle(this.player.x, this.player.y - 8, 12, 5, 0xffffff)
+      .setStrokeStyle(1, 0xd0d0d0)
+    this.playerShorts = this.add.rectangle(this.player.x, this.player.y + 12, 20, 9, 0x7b8794)
+      .setStrokeStyle(1, 0x4d5660)
+    this.playerHead = this.add.circle(this.player.x, this.player.y - 15, 11, 0xffd9b8)
       .setStrokeStyle(2, 0x8a5c42)
-    this.playerHair = this.add.rectangle(this.player.x, this.player.y - 21, 18, 8, 0x6a4328)
-    this.playerCap = this.add.triangle(this.player.x, this.player.y - 24, 0, 0, 12, 3, 6, 12, 0x2f8f4e)
-      .setAngle(-8)
-      .setStrokeStyle(2, 0x16522b)
-    this.playerSatchel = this.add.rectangle(this.player.x + 7, this.player.y + 2, 8, 12, 0xd19a3f)
-      .setStrokeStyle(1, 0x7a5a1b)
-    this.playerBoots = this.add.rectangle(this.player.x, this.player.y + 14, 14, 5, 0x73462a)
-    this.playerFaceMarker = this.add.rectangle(this.player.x, this.player.y - 10, 10, 4, 0x163d7a)
+    this.playerHair = this.add.rectangle(this.player.x, this.player.y - 22, 20, 8, 0x6a4328)
+    this.playerArms = this.add.rectangle(this.player.x, this.player.y + 1, 28, 4, 0xa53b3b)
+    this.playerSocks = this.add.rectangle(this.player.x, this.player.y + 17, 14, 5, 0xf5f5f5)
+    this.playerShoes = this.add.rectangle(this.player.x, this.player.y + 21, 16, 5, 0x3f2d23)
+    this.playerFaceMarker = this.add.rectangle(this.player.x, this.player.y - 10, 10, 4, 0x7d2424)
       .setOrigin(0.5)
 
-    this.attackSwish = this.add.rectangle(this.player.x, this.player.y, 24, 14, 0xf8f2c8, 0.5)
-      .setStrokeStyle(2, 0xd3972d)
+    this.attackSwish = this.add.rectangle(this.player.x, this.player.y, 24, 14, 0xffffff, 0.45)
+      .setStrokeStyle(2, 0xffd54f)
       .setVisible(false)
   }
 
@@ -540,14 +539,15 @@ export default class Game extends Phaser.Scene {
     }
 
     this.hallMonitorShadow.setPosition(this.hallMonitor.x, this.hallMonitor.y + 17)
-    this.hallMonitorCape.setPosition(this.hallMonitor.x, this.hallMonitor.y + 5)
-    this.hallMonitorBody.setPosition(this.hallMonitor.x, this.hallMonitor.y + 2)
-    this.hallMonitorHead.setPosition(this.hallMonitor.x, this.hallMonitor.y - 14)
-    this.hallMonitorCap.setPosition(this.hallMonitor.x, this.hallMonitor.y - 22)
-    this.hallMonitorVisor.setPosition(this.hallMonitor.x, this.hallMonitor.y - 17)
-    this.hallMonitorBadge.setPosition(this.hallMonitor.x + 5, this.hallMonitor.y + 1)
-    this.hallMonitorClipboard.setPosition(this.hallMonitor.x - 8, this.hallMonitor.y + 4)
-    this.hallMonitorBoots.setPosition(this.hallMonitor.x, this.hallMonitor.y + 14)
+    this.hallMonitorBody.setPosition(this.hallMonitor.x, this.hallMonitor.y + 1)
+    this.hallMonitorShirt.setPosition(this.hallMonitor.x, this.hallMonitor.y - 2)
+    this.hallMonitorTie.setPosition(this.hallMonitor.x, this.hallMonitor.y + 1)
+    this.hallMonitorHead.setPosition(this.hallMonitor.x, this.hallMonitor.y - 16)
+    this.hallMonitorHair.setPosition(this.hallMonitor.x, this.hallMonitor.y - 22)
+    this.hallMonitorBadge.setPosition(this.hallMonitor.x + 6, this.hallMonitor.y + 1)
+    this.hallMonitorClipboard.setPosition(this.hallMonitor.x - 11, this.hallMonitor.y + 4)
+    this.hallMonitorArms.setPosition(this.hallMonitor.x, this.hallMonitor.y + 2)
+    this.hallMonitorShoes.setPosition(this.hallMonitor.x, this.hallMonitor.y + 15)
     this.hallMonitorLabel.setPosition(this.hallMonitor.x - 40, this.hallMonitor.y - 46)
   }
 
@@ -676,15 +676,16 @@ export default class Game extends Phaser.Scene {
 
   defeatHallMonitor() {
     this.hallMonitorDefeated = true
-    this.hallMonitorCape.setVisible(false)
     this.hallMonitorBody.setVisible(false)
     this.hallMonitorShadow.setVisible(false)
+    this.hallMonitorShirt.setVisible(false)
+    this.hallMonitorTie.setVisible(false)
     this.hallMonitorHead.setVisible(false)
-    this.hallMonitorCap.setVisible(false)
-    this.hallMonitorVisor.setVisible(false)
+    this.hallMonitorHair.setVisible(false)
     this.hallMonitorBadge.setVisible(false)
     this.hallMonitorClipboard.setVisible(false)
-    this.hallMonitorBoots.setVisible(false)
+    this.hallMonitorArms.setVisible(false)
+    this.hallMonitorShoes.setVisible(false)
     this.hallMonitorLabel.setVisible(false)
     this.spawnKey(this.hallMonitor.x + 10, this.hallMonitor.y)
     this.showMessage('Hall Monitor defeated!')
@@ -832,52 +833,41 @@ export default class Game extends Phaser.Scene {
   }
 
   updatePlayerLook() {
-    this.playerShadow.setPosition(this.player.x, this.player.y + 17)
-    this.playerCape.setPosition(this.player.x, this.player.y + 4)
-    this.playerBody.setPosition(this.player.x, this.player.y + 2)
-    this.playerHead.setPosition(this.player.x, this.player.y - 14)
-    this.playerHair.setPosition(this.player.x, this.player.y - 20)
-    this.playerCap.setPosition(this.player.x, this.player.y - 24)
-    this.playerSatchel.setPosition(this.player.x + 7, this.player.y + 2)
-    this.playerBoots.setPosition(this.player.x, this.player.y + 14)
+    this.playerShadow.setPosition(this.player.x, this.player.y + 18)
+    this.playerBody.setPosition(this.player.x, this.player.y + 1)
+    this.playerCollar.setPosition(this.player.x, this.player.y - 8)
+    this.playerShorts.setPosition(this.player.x, this.player.y + 12)
+    this.playerHead.setPosition(this.player.x, this.player.y - 15)
+    this.playerHair.setPosition(this.player.x, this.player.y - 22)
+    this.playerArms.setPosition(this.player.x, this.player.y + 1)
+    this.playerSocks.setPosition(this.player.x, this.player.y + 17)
+    this.playerShoes.setPosition(this.player.x, this.player.y + 21)
 
     let markerX = this.player.x
     let markerY = this.player.y - 10
     let markerWidth = 10
     let markerHeight = 4
-    let capAngle = -8
 
     if (this.playerFacing === 'left') {
       markerX = this.player.x - 7
       markerWidth = 4
       markerHeight = 10
-      this.playerSatchel.setPosition(this.player.x + 7, this.player.y + 2)
-      this.playerCap.setPosition(this.player.x - 2, this.player.y - 24)
-      capAngle = -26
     } else if (this.playerFacing === 'right') {
       markerX = this.player.x + 7
       markerWidth = 4
       markerHeight = 10
-      this.playerSatchel.setPosition(this.player.x - 7, this.player.y + 2)
-      this.playerCap.setPosition(this.player.x + 2, this.player.y - 24)
-      capAngle = 10
     } else if (this.playerFacing === 'up') {
       markerY = this.player.y - 15
       markerWidth = 10
       markerHeight = 4
-      this.playerCap.setPosition(this.player.x, this.player.y - 25)
-      capAngle = -8
     } else {
       markerY = this.player.y - 6
       markerWidth = 10
       markerHeight = 4
-      this.playerCap.setPosition(this.player.x, this.player.y - 23)
-      capAngle = -2
     }
 
     this.playerFaceMarker.setPosition(markerX, markerY)
     this.playerFaceMarker.setSize(markerWidth, markerHeight)
     this.playerFaceMarker.setDisplaySize(markerWidth, markerHeight)
-    this.playerCap.setAngle(capAngle)
   }
 }
