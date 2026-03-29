@@ -69,108 +69,127 @@ export default class Game extends Phaser.Scene {
   }
 
   drawFloor() {
-    this.add.rectangle(400, 46, 760, 68, 0x1f4d63, 0.98).setStrokeStyle(3, 0xf7f0c6)
-    this.add.rectangle(400, 46, 728, 44, 0x4c89a6, 0.78).setStrokeStyle(2, 0xffffff, 0.18)
+    this.add.rectangle(400, 300, 800, 600, 0xb7d8ea)
+    this.add.rectangle(400, 52, 760, 76, 0x1c4f69, 0.98).setStrokeStyle(4, 0xf7e9b6)
+    this.add.rectangle(400, 52, 726, 50, 0x508dad, 0.82).setStrokeStyle(2, 0xffffff, 0.2)
+    this.add.rectangle(400, 318, 700, 500, 0x000000, 0.14)
+
+    this.add.rectangle(
+      this.roomLeft + this.roomWidth / 2,
+      this.roomTop + this.roomHeight / 2 + 8,
+      this.roomWidth + 12,
+      this.roomHeight + 12,
+      0x87623f,
+      0.35
+    )
 
     this.add.rectangle(
       this.roomLeft + this.roomWidth / 2,
       this.roomTop + this.roomHeight / 2,
       this.roomWidth,
       this.roomHeight,
-      0xf6e7bf
+      0xf5e5bb
     ).setStrokeStyle(6, 0xc6a76c)
 
     this.add.rectangle(
       this.roomLeft + this.roomWidth / 2,
-      this.roomTop + this.roomHeight / 2,
-      this.roomWidth - 18,
-      this.roomHeight - 18,
+      this.roomTop + this.roomHeight / 2 - 4,
+      this.roomWidth - 14,
+      this.roomHeight - 14,
       0xffffff,
-      0.06
+      0.05
     )
 
     const tileSize = 40
 
     for (let y = this.roomTop; y < this.roomBottom; y += tileSize) {
       for (let x = this.roomLeft; x < this.roomRight; x += tileSize) {
-        const useAltColor = ((x - this.roomLeft) / tileSize + (y - this.roomTop) / tileSize) % 2 === 0
-        const color = useAltColor ? 0xf5e7be : 0xebd9a7
+        const tileIndex = ((x - this.roomLeft) / tileSize + (y - this.roomTop) / tileSize) % 2 === 0
+        const color = tileIndex ? 0xf2e1b2 : 0xe8d39b
+        const tile = this.add.rectangle(x + tileSize / 2, y + tileSize / 2, tileSize, tileSize, color)
+          .setStrokeStyle(1, 0xd6bf7a, 0.35)
 
-        this.add.rectangle(x + tileSize / 2, y + tileSize / 2, tileSize, tileSize, color)
-          .setStrokeStyle(1, 0xd6bf7a, 0.45)
+        tile.setAngle(tileIndex ? 0 : 0.15)
+        this.add.rectangle(x + tileSize / 2, y + 8, tileSize - 6, 3, 0xffffff, 0.12)
       }
     }
 
-    for (let y = this.roomTop + 20; y < this.roomBottom; y += 80) {
-      this.add.rectangle(this.roomLeft + this.roomWidth / 2, y, this.roomWidth - 28, 4, 0xffffff, 0.12)
+    for (let y = this.roomTop + 18; y < this.roomBottom; y += 80) {
+      this.add.rectangle(this.roomLeft + this.roomWidth / 2, y, this.roomWidth - 34, 4, 0xffffff, 0.11)
     }
 
-    this.add.rectangle(400, 320, 190, 116, 0xc74858, 0.88).setStrokeStyle(4, 0x893443)
-    this.add.rectangle(400, 320, 160, 86, 0xe68d9c, 0.35).setStrokeStyle(2, 0xf8d9de, 0.35)
+    this.add.ellipse(400, 326, 220, 132, 0x9f334a, 0.32)
+    this.add.rectangle(400, 320, 192, 118, 0xc84d5d, 0.92).setStrokeStyle(4, 0x893443)
+    this.add.rectangle(400, 320, 158, 84, 0xee9eaa, 0.28).setStrokeStyle(2, 0xfce4e7, 0.28)
   }
 
   drawClassroomDecor() {
-    this.add.rectangle(this.roomLeft + 34, this.roomTop + 34, 24, 24, 0x8ba1b1).setStrokeStyle(2, 0xeaf2f5)
-    this.add.rectangle(this.roomRight - 34, this.roomTop + 34, 24, 24, 0x8ba1b1).setStrokeStyle(2, 0xeaf2f5)
-    this.add.rectangle(this.roomLeft + 34, this.roomBottom - 34, 24, 24, 0x8ba1b1).setStrokeStyle(2, 0xeaf2f5)
-    this.add.rectangle(this.roomRight - 34, this.roomBottom - 34, 24, 24, 0x8ba1b1).setStrokeStyle(2, 0xeaf2f5)
-
-    this.add.rectangle(400, 78, 240, 28, 0x2f6b3d)
-    this.add.rectangle(400, 78, 246, 34)
-      .setStrokeStyle(3, 0x704d2d)
-      .setFillStyle(0x000000, 0)
-
+    this.add.rectangle(400, 82, 264, 38, 0x6d4b2f, 0.85).setStrokeStyle(3, 0x49311d)
+    this.add.rectangle(400, 78, 250, 28, 0x2f6b3d).setStrokeStyle(2, 0xb8d6b4)
     this.add.text(323, 67, 'TODAY: ESCAPE!', {
       fontFamily: 'Arial',
       fontSize: '18px',
       color: '#f4f7f0'
     })
 
-    this.add.rectangle(165, 150, 70, 40, 0xc59155).setStrokeStyle(2, 0x6e4d2f)
-    this.add.rectangle(245, 150, 70, 40, 0xc59155).setStrokeStyle(2, 0x6e4d2f)
-    this.add.rectangle(165, 205, 70, 40, 0xc59155).setStrokeStyle(2, 0x6e4d2f)
-    this.add.rectangle(245, 205, 70, 40, 0xc59155).setStrokeStyle(2, 0x6e4d2f)
+    const deskPositions = [
+      { x: 165, y: 150 },
+      { x: 245, y: 150 },
+      { x: 165, y: 205 },
+      { x: 245, y: 205 }
+    ]
 
-    this.add.rectangle(165, 132, 58, 6, 0xe7c79c, 0.9)
-    this.add.rectangle(245, 132, 58, 6, 0xe7c79c, 0.9)
-    this.add.rectangle(165, 187, 58, 6, 0xe7c79c, 0.9)
-    this.add.rectangle(245, 187, 58, 6, 0xe7c79c, 0.9)
-    this.add.rectangle(165, 162, 52, 6, 0x9c6e3a, 0.35)
-    this.add.rectangle(245, 162, 52, 6, 0x9c6e3a, 0.35)
-    this.add.rectangle(165, 217, 52, 6, 0x9c6e3a, 0.35)
-    this.add.rectangle(245, 217, 52, 6, 0x9c6e3a, 0.35)
+    deskPositions.forEach((desk) => {
+      this.add.rectangle(desk.x, desk.y + 8, 74, 42, 0x7a5635, 0.28)
+      this.add.rectangle(desk.x, desk.y, 72, 30, 0xd7b07a).setStrokeStyle(2, 0x75502f)
+      this.add.rectangle(desk.x, desk.y + 14, 68, 14, 0xa36d42).setStrokeStyle(1, 0x70492d)
+      this.add.rectangle(desk.x, desk.y - 13, 58, 5, 0xf2debc, 0.75)
+      this.add.rectangle(desk.x - 22, desk.y + 18, 6, 18, 0x6e4d2f)
+      this.add.rectangle(desk.x + 22, desk.y + 18, 6, 18, 0x6e4d2f)
+    })
 
-    this.add.rectangle(585, 180, 110, 55, 0xc99b6b).setStrokeStyle(2, 0x6e4d2f)
-    this.add.rectangle(585, 152, 90, 10, 0xe5c798, 0.9)
-    this.add.rectangle(585, 194, 90, 8, 0x8a5d31, 0.28)
+    this.add.rectangle(585, 190, 118, 60, 0x7f5a37, 0.3)
+    this.add.rectangle(585, 176, 114, 34, 0xd4aa73).setStrokeStyle(3, 0x6e4d2f)
+    this.add.rectangle(585, 194, 110, 18, 0xa26d40).setStrokeStyle(2, 0x6e4d2f)
+    this.add.rectangle(585, 159, 90, 7, 0xf3dfbe, 0.85)
+    this.add.rectangle(550, 195, 12, 18, 0x6e4d2f)
+    this.add.rectangle(620, 195, 12, 18, 0x6e4d2f)
     this.add.text(545, 170, 'Teacher Desk', {
       fontFamily: 'Arial',
       fontSize: '14px',
       color: '#2c1b12'
     })
 
-    this.add.rectangle(120, 360, 38, 90, 0xb34d4d).setStrokeStyle(2, 0x6e2323)
-    this.add.rectangle(120, 332, 26, 8, 0xdbba7e, 0.85)
+    this.add.rectangle(122, 366, 42, 92, 0x6b3b2d, 0.3)
+    this.add.rectangle(120, 360, 40, 78, 0xbc5750).setStrokeStyle(3, 0x6e2323)
+    this.add.rectangle(120, 329, 30, 10, 0xe7c491, 0.95)
+    this.add.rectangle(120, 346, 28, 10, 0xeab04c, 0.85)
+    this.add.rectangle(120, 364, 28, 10, 0x73b0d4, 0.85)
+    this.add.rectangle(120, 382, 28, 10, 0xd66d56, 0.85)
     this.add.text(103, 328, 'BOOKS', {
       fontFamily: 'Arial',
       fontSize: '12px',
       color: '#5f1d1d'
     })
 
-    this.add.rectangle(190, 426, 98, 56, 0x4f8f7e).setStrokeStyle(3, 0x245447)
-    this.add.rectangle(190, 426, 84, 42, 0x7bc3b0, 0.9).setStrokeStyle(2, 0xdff8ef, 0.4)
-    this.add.rectangle(168, 426, 30, 42, 0x1f5b4b, 0.55)
-    this.add.rectangle(212, 426, 30, 42, 0x1f5b4b, 0.55)
-    this.add.circle(190, 405, 6, 0xfff4a8, 0.9)
+    this.add.rectangle(190, 434, 104, 64, 0x365d54, 0.26)
+    this.add.rectangle(190, 426, 102, 52, 0x4c9a8b).setStrokeStyle(3, 0x235347)
+    this.add.rectangle(190, 404, 90, 10, 0xc8f1e4, 0.9)
+    this.add.rectangle(166, 430, 28, 40, 0x2b6a5a, 0.85)
+    this.add.rectangle(214, 430, 28, 40, 0x2b6a5a, 0.85)
+    this.add.rectangle(166, 430, 6, 40, 0xe7fffa, 0.16)
+    this.add.rectangle(214, 430, 6, 40, 0xe7fffa, 0.16)
+    this.add.circle(190, 402, 7, 0xfff0a8, 0.95)
     this.add.text(154, 418, 'HIDE HERE', {
       fontFamily: 'Arial',
       fontSize: '13px',
       color: '#103c33'
     })
 
-    this.add.rectangle(670, 420, 70, 48, 0x8f7a63).setStrokeStyle(2, 0x584533)
-    this.add.rectangle(670, 409, 52, 12, 0xd9c3a1, 0.8)
-    this.add.rectangle(670, 429, 52, 18, 0x735d49, 0.35)
+    this.add.rectangle(670, 425, 74, 52, 0x5e4d3c, 0.28)
+    this.add.rectangle(670, 420, 72, 34, 0x9d8567).setStrokeStyle(3, 0x584533)
+    this.add.rectangle(670, 438, 68, 14, 0x735d49).setStrokeStyle(1, 0x4e3e30)
+    this.add.rectangle(670, 405, 56, 8, 0xe4cfaf, 0.9)
     this.add.text(650, 412, 'TRAYS', {
       fontFamily: 'Arial',
       fontSize: '12px',
@@ -218,7 +237,7 @@ export default class Game extends Phaser.Scene {
     this.walls.forEach((wall) => {
       this.obstacles.push(new Phaser.Geom.Rectangle(wall.x, wall.y, wall.width, wall.height))
 
-      this.add.rectangle(
+      const body = this.add.rectangle(
         wall.x + wall.width / 2,
         wall.y + wall.height / 2,
         wall.width,
@@ -228,21 +247,50 @@ export default class Game extends Phaser.Scene {
 
       this.add.rectangle(
         wall.x + wall.width / 2,
-        wall.y + wall.height / 2,
-        wall.width - 6,
-        wall.height - 6,
+        wall.y + wall.height / 2 - 2,
+        Math.max(6, wall.width - 8),
+        Math.max(6, wall.height - 8),
         0xffffff,
-        0.08
+        0.06
       )
 
-      this.add.rectangle(
-        wall.x + wall.width / 2,
-        wall.y + wall.height / 2 - Math.max(0, wall.height / 2 - 4),
-        Math.max(8, wall.width - 10),
-        4,
-        0xffffff,
-        0.18
-      )
+      if (wall.width > wall.height) {
+        this.add.rectangle(
+          wall.x + wall.width / 2,
+          wall.y + 4,
+          Math.max(8, wall.width - 10),
+          5,
+          0xf6f7fb,
+          0.3
+        )
+        this.add.rectangle(
+          wall.x + wall.width / 2,
+          wall.y + wall.height - 4,
+          Math.max(8, wall.width - 6),
+          6,
+          0x4d5a67,
+          0.28
+        )
+      } else {
+        this.add.rectangle(
+          wall.x + 4,
+          wall.y + wall.height / 2,
+          5,
+          Math.max(8, wall.height - 10),
+          0xf6f7fb,
+          0.24
+        )
+        this.add.rectangle(
+          wall.x + wall.width - 4,
+          wall.y + wall.height / 2,
+          6,
+          Math.max(8, wall.height - 6),
+          0x4d5a67,
+          0.28
+        )
+      }
+
+      body.setDepth(5)
     })
   }
 
@@ -261,14 +309,15 @@ export default class Game extends Phaser.Scene {
       height: this.exit.height
     }
 
-    this.exitArch = this.add.ellipse(this.exit.x - 2, this.exit.y - 43, 34, 24, 0x6f4123, 0.95)
+    this.exitGlowShadow = this.add.ellipse(this.exit.x - 8, this.exit.y + 8, 42, 132, 0x000000, 0.18)
+    this.exitArch = this.add.ellipse(this.exit.x - 2, this.exit.y - 43, 38, 28, 0x6f4123, 0.98)
       .setStrokeStyle(2, 0x42210f)
 
     this.exitFrame = this.add.rectangle(
       this.exit.x,
       this.exit.y,
-      this.exit.width,
-      this.exit.height,
+      28,
+      126,
       0x58341d
     )
 
@@ -280,15 +329,18 @@ export default class Game extends Phaser.Scene {
       0x8b5a2b
     ).setStrokeStyle(2, 0x59371c)
 
+    this.exitDoorPanel = this.add.rectangle(this.exit.x - 3, this.exit.y + 8, 10, 54, 0xa66c36).setStrokeStyle(1, 0x69401f)
     this.exitHandle = this.add.circle(this.exit.x + 2, this.exit.y, 3, 0xffd54f)
     this.exitLockBar = this.add.rectangle(this.exit.x - 3, this.exit.y + 8, 18, 10, 0xb73939)
       .setStrokeStyle(2, 0x6b1d1d)
-    this.exitOpenGlow = this.add.ellipse(this.exit.x - 14, this.exit.y, 30, 96, 0xbff7a8, 0.45)
+    this.exitOpenGlow = this.add.ellipse(this.exit.x - 14, this.exit.y, 36, 104, 0xbff7a8, 0.42)
       .setVisible(false)
-    this.exitStep = this.add.rectangle(this.exit.x - 6, this.exit.y + 58, 34, 8, 0x8e989d).setStrokeStyle(2, 0x61686c)
+    this.exitStep = this.add.rectangle(this.exit.x - 6, this.exit.y + 62, 38, 10, 0x8e989d).setStrokeStyle(2, 0x61686c)
 
     this.exitWindow = this.add.rectangle(this.exit.x - 3, this.exit.y - 24, 9, 18, 0x8fc8e8, 0.8)
       .setStrokeStyle(1, 0x2c5b73)
+
+    this.exitMat = this.add.rectangle(this.exit.x - 22, this.exit.y + 72, 42, 14, 0x74455c, 0.8).setStrokeStyle(2, 0x4a2738)
 
     this.updateDoorLook()
   }
@@ -340,10 +392,12 @@ export default class Game extends Phaser.Scene {
 
   createCoin(x, y) {
     const coin = this.add.container(x, y)
-    const glow = this.add.circle(0, 0, 16, 0xfff1a8, 0.28)
-    const sparkleA = this.add.star(0, 0, 4, 9, 13, 0xfff6c5, 0.2)
+    const glow = this.add.circle(0, 1, 18, 0xfff1a8, 0.28)
+    const sparkleA = this.add.star(0, 0, 4, 9, 14, 0xfff6c5, 0.18)
+    const sparkleB = this.add.star(3, -1, 4, 6, 10, 0xffffff, 0.16)
     const outer = this.add.circle(0, 0, 11, 0xffd54f).setStrokeStyle(3, 0xc88a00)
     const inner = this.add.circle(0, 0, 7, 0xffef99)
+    const rim = this.add.arc(0, 0, 9, 210, 330, false, 0xffc829, 0.5).setLineStyle(2, 0xf9f1b2)
     const shine = this.add.rectangle(-3, -3, 6, 2, 0xffffff, 0.7).setAngle(-25)
     const mark = this.add.text(-4, -7, 'C', {
       fontFamily: 'Arial',
@@ -351,22 +405,23 @@ export default class Game extends Phaser.Scene {
       color: '#9a6a00'
     })
 
-    coin.add([glow, sparkleA, outer, inner, shine, mark])
+    coin.add([glow, sparkleA, sparkleB, outer, inner, rim, shine, mark])
     return coin
   }
 
   createKey() {
     this.key = this.add.container(505, 245)
 
-    const keyGlow = this.add.circle(0, 0, 20, 0xa9f0ff, 0.34)
-    const keySparkle = this.add.star(0, 0, 4, 10, 15, 0xe6fbff, 0.18)
+    const keyGlow = this.add.circle(0, 0, 22, 0xa9f0ff, 0.34)
+    const keySparkle = this.add.star(0, 0, 4, 10, 16, 0xe6fbff, 0.18)
     const keyHead = this.add.circle(0, 0, 9, 0x66d7ff).setStrokeStyle(3, 0x0b6f95)
     const keyHole = this.add.circle(0, 0, 3, 0xe9ddb8)
     const keyStem = this.add.rectangle(16, 0, 24, 6, 0x66d7ff).setStrokeStyle(2, 0x0b6f95)
     const keyToothTop = this.add.rectangle(24, -5, 5, 7, 0x66d7ff).setStrokeStyle(2, 0x0b6f95)
     const keyToothBottom = this.add.rectangle(18, 5, 5, 7, 0x66d7ff).setStrokeStyle(2, 0x0b6f95)
+    const keyShine = this.add.rectangle(-2, -6, 8, 3, 0xffffff, 0.7).setAngle(-30)
 
-    this.key.add([keyGlow, keySparkle, keyHead, keyHole, keyStem, keyToothTop, keyToothBottom])
+    this.key.add([keyGlow, keySparkle, keyHead, keyHole, keyStem, keyToothTop, keyToothBottom, keyShine])
 
     this.tweens.add({
       targets: this.key,
@@ -393,15 +448,16 @@ export default class Game extends Phaser.Scene {
     }
 
     this.dutyTeacherVisionCone = this.add.graphics().setDepth(3)
-    this.dutyTeacherShadow = this.add.ellipse(this.dutyTeacher.x, this.dutyTeacher.y + 18, 30, 12, 0x000000, 0.22)
-    this.dutyTeacherBody = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 1, 24, 24, 0x4c6d8b)
-      .setStrokeStyle(3, 0x27435b)
-    this.dutyTeacherShirt = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 2, 16, 10, 0xe7eef3)
+    this.dutyTeacherShadow = this.add.ellipse(this.dutyTeacher.x, this.dutyTeacher.y + 18, 32, 14, 0x000000, 0.22)
+    this.dutyTeacherBody = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 2, 24, 25, 0x3f5f7d)
+      .setStrokeStyle(3, 0x22394c)
+    this.dutyTeacherShirt = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 3, 14, 11, 0xf3f3ef)
       .setStrokeStyle(1, 0x7a8d9e)
-    this.dutyTeacherTie = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 1, 4, 10, 0xd95b5b)
+    this.dutyTeacherTie = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 1, 4, 10, 0xc94e4e)
     this.dutyTeacherHead = this.add.circle(this.dutyTeacher.x, this.dutyTeacher.y - 16, 10, 0xffd4b0)
       .setStrokeStyle(2, 0x7c4d39)
-    this.dutyTeacherHair = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 22, 18, 7, 0x5b4335)
+    this.dutyTeacherHair = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 22, 18, 7, 0x4b392f)
+    this.dutyTeacherBlazer = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 4, 18, 12, 0x58799a, 0.95)
     this.dutyTeacherBadge = this.add.rectangle(this.dutyTeacher.x + 6, this.dutyTeacher.y + 1, 8, 8, 0xf4d35e)
       .setStrokeStyle(1, 0x9b7b12)
     this.dutyTeacherClipboard = this.add.rectangle(this.dutyTeacher.x - 11, this.dutyTeacher.y + 4, 10, 15, 0xf7efcc)
@@ -409,6 +465,7 @@ export default class Game extends Phaser.Scene {
       .setStrokeStyle(1, 0x7b6c45)
     this.dutyTeacherArms = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 2, 28, 4, 0x354d64)
     this.dutyTeacherShoes = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 15, 18, 5, 0x2a2a33)
+    this.dutyTeacherMarker = this.add.rectangle(this.dutyTeacher.x + 8, this.dutyTeacher.y - 15, 5, 10, 0xffffff, 0.6)
     this.dutyTeacherLabel = this.add.text(this.dutyTeacher.x - 36, this.dutyTeacher.y - 46, 'Duty Teacher', {
       fontFamily: 'Arial',
       fontSize: '14px',
@@ -426,8 +483,8 @@ export default class Game extends Phaser.Scene {
       height: 26
     }
 
-    this.playerShadow = this.add.ellipse(this.player.x, this.player.y + 18, 28, 12, 0x000000, 0.24)
-    this.playerBody = this.add.rectangle(this.player.x, this.player.y + 1, 22, 18, 0xc94d4d)
+    this.playerShadow = this.add.ellipse(this.player.x, this.player.y + 18, 30, 12, 0x000000, 0.24)
+    this.playerBody = this.add.rectangle(this.player.x, this.player.y + 2, 22, 18, 0xc94d4d)
       .setStrokeStyle(3, 0x7d2424)
     this.playerCollar = this.add.rectangle(this.player.x, this.player.y - 8, 12, 5, 0xffffff)
       .setStrokeStyle(1, 0xd0d0d0)
@@ -437,9 +494,10 @@ export default class Game extends Phaser.Scene {
       .setStrokeStyle(2, 0x8a5c42)
     this.playerHair = this.add.rectangle(this.player.x, this.player.y - 22, 20, 8, 0x6a4328)
     this.playerArms = this.add.rectangle(this.player.x, this.player.y + 1, 28, 4, 0xa53b3b)
+    this.playerBag = this.add.rectangle(this.player.x + 8, this.player.y + 5, 7, 10, 0x8b6b3f).setStrokeStyle(1, 0x604626)
     this.playerSocks = this.add.rectangle(this.player.x, this.player.y + 17, 14, 5, 0xf5f5f5)
     this.playerShoes = this.add.rectangle(this.player.x, this.player.y + 21, 16, 5, 0x3f2d23)
-    this.playerFaceMarker = this.add.rectangle(this.player.x, this.player.y - 10, 10, 4, 0x7d2424)
+    this.playerFaceMarker = this.add.rectangle(this.player.x, this.player.y - 10, 10, 4, 0xffffff)
       .setOrigin(0.5)
 
     this.attackSwish = this.add.rectangle(this.player.x, this.player.y, 24, 14, 0xffffff, 0.45)
@@ -448,29 +506,31 @@ export default class Game extends Phaser.Scene {
   }
 
   createUi() {
-    this.hudTitle = this.add.text(48, 26, 'Escape from Penwortham', {
+    this.add.rectangle(400, 50, 760, 76, 0x163b4d, 0.28)
+    this.hudPanel = this.add.rectangle(400, 50, 736, 60, 0x214f65, 0.94).setStrokeStyle(3, 0xf3e5b5)
+    this.hudTitle = this.add.text(42, 18, 'Escape from Penwortham', {
       fontFamily: 'Arial',
-      fontSize: '28px',
-      color: '#fff7dc'
+      fontSize: '24px',
+      color: '#fff6d8'
     })
 
-    this.hudSubtitle = this.add.text(48, 54, 'Collect gold, bonk the Duty Teacher, grab the key, then head for the door.', {
+    this.hudSubtitle = this.add.text(42, 46, 'Nursery Tutorial', {
       fontFamily: 'Arial',
-      fontSize: '14px',
+      fontSize: '13px',
       color: '#d7edf7'
     })
 
-    this.scoreBadge = this.add.rectangle(575, 34, 124, 38, 0xf6ecc0).setStrokeStyle(2, 0x92743b)
-    this.scoreText = this.add.text(525, 24, 'Gold: 0 / 2', {
+    this.scoreBadge = this.add.rectangle(458, 50, 124, 34, 0xf6ecc0).setStrokeStyle(2, 0x92743b)
+    this.scoreText = this.add.text(410, 40, 'Gold: 0 / 2', {
       fontFamily: 'Arial',
-      fontSize: '18px',
+      fontSize: '17px',
       color: '#3b2b14'
     })
 
-    this.keyBadge = this.add.rectangle(688, 34, 116, 38, 0xd8eef8).setStrokeStyle(2, 0x3e7998)
-    this.keyStatusText = this.add.text(646, 24, 'Key: Missing', {
+    this.keyBadge = this.add.rectangle(586, 50, 116, 34, 0xd8eef8).setStrokeStyle(2, 0x3e7998)
+    this.keyStatusText = this.add.text(542, 40, 'Key: Missing', {
       fontFamily: 'Arial',
-      fontSize: '18px',
+      fontSize: '17px',
       color: '#16435a'
     })
 
@@ -492,7 +552,7 @@ export default class Game extends Phaser.Scene {
     this.hiddenText = this.add.text(this.player.x, this.player.y - 34, 'Hidden', {
       fontFamily: 'Arial',
       fontSize: '14px',
-      color: '#d7edf7'
+      color: '#f4fff9'
     })
       .setOrigin(0.5)
       .setDepth(22)
@@ -504,23 +564,24 @@ export default class Game extends Phaser.Scene {
   createLivesUi() {
     this.hearts = []
 
-    this.livesBadge = this.add.rectangle(785, 34, 118, 38, 0xf9d8d8).setStrokeStyle(2, 0xa34d4d)
-    this.livesLabel = this.add.text(742, 24, 'Lives', {
+    this.livesBadge = this.add.rectangle(698, 50, 118, 34, 0xf9d8d8).setStrokeStyle(2, 0xa34d4d)
+    this.livesLabel = this.add.text(652, 40, 'Lives', {
       fontFamily: 'Arial',
-      fontSize: '18px',
+      fontSize: '17px',
       color: '#6b2323'
     })
 
     for (let i = 0; i < 3; i += 1) {
-      const heartX = 790 + i * 24
-      const heartY = 34
+      const heartX = 703 + i * 24
+      const heartY = 50
       const heart = this.add.container(heartX, heartY)
+      const shadow = this.add.triangle(1, 5, -11, -1, 11, -1, 0, 12, 0x8e2f3c, 0.25)
       const leftLobe = this.add.circle(-5, -3, 6, 0xe14b5a)
       const rightLobe = this.add.circle(5, -3, 6, 0xe14b5a)
       const point = this.add.triangle(0, 4, -11, -1, 11, -1, 0, 12, 0xe14b5a)
       const shine = this.add.circle(-3, -5, 2, 0xffffff, 0.35)
 
-      heart.add([leftLobe, rightLobe, point, shine])
+      heart.add([shadow, leftLobe, rightLobe, point, shine])
       this.hearts.push(heart)
     }
 
@@ -544,22 +605,33 @@ export default class Game extends Phaser.Scene {
   }
 
   createTitleScreen() {
-    const overlay = this.add.rectangle(400, 300, 800, 600, 0x102535, 0.82)
+    const overlay = this.add.rectangle(400, 300, 800, 600, 0x102535, 0.84)
       .setInteractive()
-    const title = this.add.text(400, 230, 'Escape from Penwortham', {
+    const panelShadow = this.add.rectangle(400, 288, 428, 272, 0x000000, 0.2)
+    const panel = this.add.rectangle(400, 280, 420, 260, 0x19455a, 0.95).setStrokeStyle(4, 0xf4e6b6)
+    const stripe = this.add.rectangle(400, 188, 380, 24, 0x3d7d9a, 0.8)
+    const title = this.add.text(400, 228, 'Escape from Penwortham', {
       fontFamily: 'Arial',
-      fontSize: '42px',
-      color: '#fff7dc'
+      fontSize: '38px',
+      color: '#fff7dc',
+      align: 'center'
     }).setOrigin(0.5)
-    const subtitle = this.add.text(400, 285, 'School Escape Adventure', {
+    const subtitle = this.add.text(400, 286, 'School Escape Adventure', {
       fontFamily: 'Arial',
-      fontSize: '22px',
+      fontSize: '21px',
       color: '#d7edf7'
     }).setOrigin(0.5)
-    const prompt = this.add.text(400, 365, 'Click to continue', {
+    const promptPanel = this.add.rectangle(400, 364, 220, 42, 0xf1d68a).setStrokeStyle(2, 0x9e7c2e)
+    const prompt = this.add.text(400, 364, 'Click to continue', {
       fontFamily: 'Arial',
-      fontSize: '26px',
-      color: '#ffe58f'
+      fontSize: '24px',
+      color: '#5f4612'
+    }).setOrigin(0.5)
+    const subHint = this.add.text(400, 412, 'Collect gold, outsmart the Duty Teacher, then head home.', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#e4f3f9',
+      align: 'center'
     }).setOrigin(0.5)
 
     overlay.on('pointerdown', () => {
@@ -568,25 +640,32 @@ export default class Game extends Phaser.Scene {
       }
     })
 
-    this.titleContainer = this.add.container(0, 0, [overlay, title, subtitle, prompt])
+    this.titleContainer = this.add.container(0, 0, [overlay, panelShadow, panel, stripe, title, subtitle, promptPanel, prompt, subHint])
     this.titleContainer.setDepth(50)
   }
 
   createLevelSelectScreen() {
     const overlay = this.add.rectangle(400, 300, 800, 600, 0x122433, 0.88)
+    const panelShadow = this.add.rectangle(400, 300, 470, 350, 0x000000, 0.22)
+    const panel = this.add.rectangle(400, 292, 458, 338, 0x19455a, 0.95).setStrokeStyle(4, 0xf4e6b6)
     const heading = this.add.text(400, 170, 'Select Level', {
       fontFamily: 'Arial',
       fontSize: '34px',
       color: '#fff7dc'
     }).setOrigin(0.5)
 
-    const nurseryButton = this.add.rectangle(400, 260, 260, 54, 0xdaf4dd)
+    const nurseryButton = this.add.rectangle(400, 252, 294, 60, 0xdaf4dd)
       .setStrokeStyle(3, 0x2f7a40)
       .setInteractive()
     const nurseryText = this.add.text(400, 260, 'Nursery', {
       fontFamily: 'Arial',
       fontSize: '24px',
       color: '#215b30'
+    }).setOrigin(0.5)
+    const nurseryTag = this.add.text(520, 260, 'READY', {
+      fontFamily: 'Arial',
+      fontSize: '12px',
+      color: '#2f7a40'
     }).setOrigin(0.5)
 
     nurseryButton.on('pointerdown', () => {
@@ -595,43 +674,52 @@ export default class Game extends Phaser.Scene {
       this.levelSelectContainer.setVisible(false)
     })
 
-    const corridorButton = this.add.rectangle(400, 340, 260, 54, 0x6f7f93, 0.55)
+    const corridorButton = this.add.rectangle(400, 336, 294, 58, 0x6f7f93, 0.55)
       .setStrokeStyle(3, 0x42515f)
     const corridorText = this.add.text(400, 340, 'Year 6 Corridor', {
       fontFamily: 'Arial',
       fontSize: '22px',
       color: '#d7dde2'
     }).setOrigin(0.5)
-    const corridorLock = this.add.text(540, 340, 'LOCKED', {
+    const corridorLock = this.add.text(525, 340, 'LOCKED', {
       fontFamily: 'Arial',
       fontSize: '14px',
       color: '#f8d98d'
     }).setOrigin(0.5)
 
-    const playgroundButton = this.add.rectangle(400, 420, 260, 54, 0x6f7f93, 0.55)
+    const playgroundButton = this.add.rectangle(400, 420, 294, 58, 0x6f7f93, 0.55)
       .setStrokeStyle(3, 0x42515f)
     const playgroundText = this.add.text(400, 420, 'Playground', {
       fontFamily: 'Arial',
       fontSize: '22px',
       color: '#d7dde2'
     }).setOrigin(0.5)
-    const playgroundLock = this.add.text(540, 420, 'LOCKED', {
+    const playgroundLock = this.add.text(525, 420, 'LOCKED', {
       fontFamily: 'Arial',
       fontSize: '14px',
       color: '#f8d98d'
     }).setOrigin(0.5)
+    const footer = this.add.text(400, 500, 'More of Penwortham will unlock later.', {
+      fontFamily: 'Arial',
+      fontSize: '15px',
+      color: '#d7edf7'
+    }).setOrigin(0.5)
 
     this.levelSelectContainer = this.add.container(0, 0, [
       overlay,
+      panelShadow,
+      panel,
       heading,
       nurseryButton,
       nurseryText,
+      nurseryTag,
       corridorButton,
       corridorText,
       corridorLock,
       playgroundButton,
       playgroundText,
-      playgroundLock
+      playgroundLock,
+      footer
     ])
     this.levelSelectContainer.setDepth(51)
     this.levelSelectContainer.setVisible(false)
@@ -791,10 +879,15 @@ export default class Game extends Phaser.Scene {
     this.dutyTeacherTie.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 1)
     this.dutyTeacherHead.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 16)
     this.dutyTeacherHair.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 22)
+    this.dutyTeacherBlazer.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 4)
     this.dutyTeacherBadge.setPosition(this.dutyTeacher.x + 6, this.dutyTeacher.y + 1)
     this.dutyTeacherClipboard.setPosition(this.dutyTeacher.x - 11, this.dutyTeacher.y + 4)
     this.dutyTeacherArms.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 2)
     this.dutyTeacherShoes.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 15)
+    this.dutyTeacherMarker.setPosition(
+      this.dutyTeacherFacing === 'right' ? this.dutyTeacher.x + 8 : this.dutyTeacher.x - 8,
+      this.dutyTeacher.y - 15
+    )
     this.dutyTeacherLabel.setPosition(this.dutyTeacher.x - 36, this.dutyTeacher.y - 46)
   }
 
@@ -924,10 +1017,12 @@ export default class Game extends Phaser.Scene {
     this.dutyTeacherTie.setVisible(false)
     this.dutyTeacherHead.setVisible(false)
     this.dutyTeacherHair.setVisible(false)
+    this.dutyTeacherBlazer.setVisible(false)
     this.dutyTeacherBadge.setVisible(false)
     this.dutyTeacherClipboard.setVisible(false)
     this.dutyTeacherArms.setVisible(false)
     this.dutyTeacherShoes.setVisible(false)
+    this.dutyTeacherMarker.setVisible(false)
     this.dutyTeacherLabel.setVisible(false)
     this.spawnKey(this.dutyTeacher.x + 10, this.dutyTeacher.y)
     this.showMessage('You got past the Duty Teacher!')
@@ -1059,27 +1154,35 @@ export default class Game extends Phaser.Scene {
       this.exitFrame.setFillStyle(0x265b34)
       this.exitDoor.setFillStyle(0x5ccb6c)
       this.exitDoor.setStrokeStyle(2, 0x1f5c31)
-      this.exitDoor.setPosition(this.exit.x - 14, this.exit.y)
-      this.exitHandle.setPosition(this.exit.x - 8, this.exit.y)
+      this.exitDoor.setPosition(this.exit.x - 18, this.exit.y - 2)
+      this.exitDoorPanel.setPosition(this.exit.x - 18, this.exit.y + 8)
+      this.exitDoorPanel.setFillStyle(0x78d785)
+      this.exitHandle.setPosition(this.exit.x - 12, this.exit.y)
       this.exitHandle.setFillStyle(0xfff1a8)
       this.exitLockBar.setVisible(false)
       this.exitOpenGlow.setVisible(true)
-      this.exitWindow.setPosition(this.exit.x - 14, this.exit.y - 24)
+      this.exitGlowShadow.setVisible(false)
+      this.exitWindow.setPosition(this.exit.x - 18, this.exit.y - 24)
       this.exitWindow.setFillStyle(0xe7ffd1, 0.95)
       this.exitStep.setFillStyle(0xa8c39e)
+      this.exitMat.setFillStyle(0x3b8f55)
     } else {
       this.exitArch.setFillStyle(0x6f4123)
       this.exitFrame.setFillStyle(0x58341d)
       this.exitDoor.setFillStyle(0x915533)
       this.exitDoor.setStrokeStyle(2, 0x59371c)
       this.exitDoor.setPosition(this.exit.x - 3, this.exit.y)
+      this.exitDoorPanel.setPosition(this.exit.x - 3, this.exit.y + 8)
+      this.exitDoorPanel.setFillStyle(0xa66c36)
       this.exitHandle.setPosition(this.exit.x + 2, this.exit.y)
       this.exitHandle.setFillStyle(0xffd54f)
       this.exitLockBar.setVisible(true)
       this.exitOpenGlow.setVisible(false)
+      this.exitGlowShadow.setVisible(true)
       this.exitWindow.setPosition(this.exit.x - 3, this.exit.y - 24)
       this.exitWindow.setFillStyle(0x8fc8e8, 0.8)
       this.exitStep.setFillStyle(0x8e989d)
+      this.exitMat.setFillStyle(0x74455c)
     }
   }
 
@@ -1088,8 +1191,8 @@ export default class Game extends Phaser.Scene {
 
     this.dutyTeacherVisionCone.clear()
     this.dutyTeacherVisionCone.setVisible(true)
-    this.dutyTeacherVisionCone.fillStyle(0xffe38a, 0.32)
-    this.dutyTeacherVisionCone.lineStyle(2, 0xd99a2b, 0.5)
+    this.dutyTeacherVisionCone.fillStyle(0xfff0a8, 0.22)
+    this.dutyTeacherVisionCone.lineStyle(2, 0xe8aa3b, 0.65)
     this.dutyTeacherVisionCone.fillTriangleShape(triangle)
     this.dutyTeacherVisionCone.strokeTriangleShape(triangle)
   }
@@ -1102,6 +1205,7 @@ export default class Game extends Phaser.Scene {
     this.playerHead.setPosition(this.player.x, this.player.y - 15)
     this.playerHair.setPosition(this.player.x, this.player.y - 22)
     this.playerArms.setPosition(this.player.x, this.player.y + 1)
+    this.playerBag.setPosition(this.player.x + 8, this.player.y + 5)
     this.playerSocks.setPosition(this.player.x, this.player.y + 17)
     this.playerShoes.setPosition(this.player.x, this.player.y + 21)
 
@@ -1148,6 +1252,7 @@ export default class Game extends Phaser.Scene {
     this.playerHead.setAlpha(alpha)
     this.playerHair.setAlpha(alpha)
     this.playerArms.setAlpha(alpha)
+    this.playerBag.setAlpha(alpha)
     this.playerSocks.setAlpha(alpha)
     this.playerShoes.setAlpha(alpha)
     this.playerFaceMarker.setAlpha(alpha)
