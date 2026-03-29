@@ -28,6 +28,7 @@ export default class Game extends Phaser.Scene {
     this.isLevelSelected = false
     this.selectedLevel = null
     this.unlockedLevels = ['Nursery']
+    this.isHiding = false
     this.hasCoin = false
     this.hasCoin2 = false
     this.hasKey = false
@@ -55,8 +56,11 @@ export default class Game extends Phaser.Scene {
     this.createTitleScreen()
     this.createLevelSelectScreen()
 
+    this.cubbyZone = new Phaser.Geom.Rectangle(610, 406, 28, 30)
+
     this.cursors = this.input.keyboard.createCursorKeys()
     this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+    this.hideKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
     this.restartKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
     this.updateLivesUi()
   }
@@ -472,6 +476,15 @@ export default class Game extends Phaser.Scene {
       .setDepth(21)
       .setVisible(false)
 
+    this.hiddenText = this.add.text(this.player.x, this.player.y - 34, 'Hidden', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#d7edf7'
+    })
+      .setOrigin(0.5)
+      .setDepth(22)
+      .setVisible(false)
+
     this.updateHud()
   }
 
@@ -641,22 +654,32 @@ export default class Game extends Phaser.Scene {
     }
 
     const dt = delta / 1000
+    const inCubbyZone = this.rectsOverlap(this.getPlayerBounds(), this.cubbyZone)
     let moveX = 0
     let moveY = 0
 
-    if (this.cursors.left.isDown) {
+    if (Phaser.Input.Keyboard.JustDown(this.hideKey) && inCubbyZone) {
+      this.isHiding = !this.isHiding
+      this.setPlayerAlpha(this.isHiding ? 0.4 : 1)
+
+      if (this.isHiding) {
+        this.showMessage('Hiding...')
+      }
+    }
+
+    if (!this.isHiding && this.cursors.left.isDown) {
       moveX -= 1
       this.playerFacing = 'left'
     }
-    if (this.cursors.right.isDown) {
+    if (!this.isHiding && this.cursors.right.isDown) {
       moveX += 1
       this.playerFacing = 'right'
     }
-    if (this.cursors.up.isDown) {
+    if (!this.isHiding && this.cursors.up.isDown) {
       moveY -= 1
       this.playerFacing = 'up'
     }
-    if (this.cursors.down.isDown) {
+    if (!this.isHiding && this.cursors.down.isDown) {
       moveY += 1
       this.playerFacing = 'down'
     }
@@ -681,6 +704,7 @@ export default class Game extends Phaser.Scene {
     this.updateAttack(delta)
 
     this.updatePlayerLook()
+    this.updateHidingUi()
 
     this.checkCoinPickup(this.coin, 'hasCoin')
     this.checkCoinPickup(this.coin2, 'hasCoin2')
@@ -892,6 +916,10 @@ export default class Game extends Phaser.Scene {
       return
     }
 
+    if (this.isHiding) {
+      return
+    }
+
     const touching = this.rectsOverlap(this.getPlayerBounds(), this.getTeacherBounds())
 
     if (!touching) {
@@ -1049,6 +1077,26 @@ export default class Game extends Phaser.Scene {
     this.playerFaceMarker.setPosition(markerX, markerY)
     this.playerFaceMarker.setSize(markerWidth, markerHeight)
     this.playerFaceMarker.setDisplaySize(markerWidth, markerHeight)
+  }
+
+  updateHidingUi() {
+    const inCubbyZone = this.rectsOverlap(this.getPlayerBounds(), this.cubbyZone)
+    this.hiddenText.setPosition(this.player.x, this.player.y - 34)
+    this.hiddenText.setVisible(this.isHiding || inCubbyZone)
+    this.hiddenText.setText(this.isHiding ? 'Hidden' : 'Hide')
+  }
+
+  setPlayerAlpha(alpha) {
+    this.playerShadow.setAlpha(alpha)
+    this.playerBody.setAlpha(alpha)
+    this.playerCollar.setAlpha(alpha)
+    this.playerShorts.setAlpha(alpha)
+    this.playerHead.setAlpha(alpha)
+    this.playerHair.setAlpha(alpha)
+    this.playerArms.setAlpha(alpha)
+    this.playerSocks.setAlpha(alpha)
+    this.playerShoes.setAlpha(alpha)
+    this.playerFaceMarker.setAlpha(alpha)
   }
 
   updateLivesUi() {
