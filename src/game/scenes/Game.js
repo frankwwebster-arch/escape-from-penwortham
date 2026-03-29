@@ -397,7 +397,7 @@ export default class Game extends Phaser.Scene {
     const sparkleB = this.add.star(3, -1, 4, 6, 10, 0xffffff, 0.16)
     const outer = this.add.circle(0, 0, 11, 0xffd54f).setStrokeStyle(3, 0xc88a00)
     const inner = this.add.circle(0, 0, 7, 0xffef99)
-    const rim = this.add.arc(0, 0, 9, 210, 330, false, 0xffc829, 0.5).setLineStyle(2, 0xf9f1b2)
+    const rim = this.add.arc(0, 0, 9, 210, 330, false, 0xffc829, 0.5).setStrokeStyle(2, 0xf9f1b2)
     const shine = this.add.rectangle(-3, -3, 6, 2, 0xffffff, 0.7).setAngle(-25)
     const mark = this.add.text(-4, -7, 'C', {
       fontFamily: 'Arial',
