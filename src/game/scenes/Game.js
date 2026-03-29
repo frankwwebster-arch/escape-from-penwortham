@@ -16,17 +16,22 @@ export default class Game extends Phaser.Scene {
     this.roomBottom = this.roomTop + this.roomHeight
     this.wallThickness = 20
 
+    this.playerStartX = 140
+    this.playerStartY = 150
+    this.playerSpeed = 190
+
     this.score = 0
     this.hasCoin = false
     this.hasCoin2 = false
     this.hasExited = false
-    this.playerSpeed = 190
+    this.messageTimer = 0
 
     this.drawFloor()
     this.drawClassroomDecor()
     this.createWalls()
     this.createExit()
     this.createCoins()
+    this.createHallMonitor()
     this.createPlayer()
     this.createUi()
 
@@ -186,10 +191,59 @@ export default class Game extends Phaser.Scene {
     })
   }
 
+  createHallMonitor() {
+    this.hallMonitor = {
+      x: 420,
+      y: 360,
+      width: 28,
+      height: 28,
+      leftLimit: 330,
+      rightLimit: 610,
+      speed: 90,
+      direction: 1
+    }
+
+    this.hallMonitorShadow = this.add.ellipse(
+      this.hallMonitor.x,
+      this.hallMonitor.y + 15,
+      26,
+      10,
+      0x000000,
+      0.2
+    )
+
+    this.hallMonitorBody = this.add.rectangle(
+      this.hallMonitor.x,
+      this.hallMonitor.y,
+      this.hallMonitor.width,
+      this.hallMonitor.height,
+      0xd94b4b
+    ).setStrokeStyle(3, 0x7a1f1f)
+
+    this.hallMonitorBadge = this.add.rectangle(
+      this.hallMonitor.x,
+      this.hallMonitor.y - 4,
+      10,
+      8,
+      0xf4d35e
+    )
+
+    this.hallMonitorLabel = this.add.text(
+      this.hallMonitor.x - 36,
+      this.hallMonitor.y - 34,
+      'Hall Monitor',
+      {
+        fontFamily: 'Arial',
+        fontSize: '14px',
+        color: '#4a1414'
+      }
+    )
+  }
+
   createPlayer() {
     this.player = {
-      x: 140,
-      y: 150,
+      x: this.playerStartX,
+      y: this.playerStartY,
       width: 26,
       height: 26
     }
@@ -249,12 +303,16 @@ export default class Game extends Phaser.Scene {
       this.movePlayer(0, direction.y * distance)
     }
 
+    this.updateHallMonitor(dt)
+
     this.playerBody.setPosition(this.player.x, this.player.y)
     this.playerShadow.setPosition(this.player.x, this.player.y + 14)
 
     this.checkCoinPickup(this.coin, 'hasCoin')
     this.checkCoinPickup(this.coin2, 'hasCoin2')
+    this.checkHallMonitorTouch()
     this.checkExit()
+    this.updateMessage(delta)
   }
 
   movePlayer(deltaX, deltaY) {
@@ -280,6 +338,25 @@ export default class Game extends Phaser.Scene {
     this.player.y = nextY
   }
 
+  updateHallMonitor(dt) {
+    this.hallMonitor.x += this.hallMonitor.speed * this.hallMonitor.direction * dt
+
+    if (this.hallMonitor.x <= this.hallMonitor.leftLimit) {
+      this.hallMonitor.x = this.hallMonitor.leftLimit
+      this.hallMonitor.direction = 1
+    }
+
+    if (this.hallMonitor.x >= this.hallMonitor.rightLimit) {
+      this.hallMonitor.x = this.hallMonitor.rightLimit
+      this.hallMonitor.direction = -1
+    }
+
+    this.hallMonitorBody.setPosition(this.hallMonitor.x, this.hallMonitor.y)
+    this.hallMonitorShadow.setPosition(this.hallMonitor.x, this.hallMonitor.y + 15)
+    this.hallMonitorBadge.setPosition(this.hallMonitor.x, this.hallMonitor.y - 4)
+    this.hallMonitorLabel.setPosition(this.hallMonitor.x - 36, this.hallMonitor.y - 34)
+  }
+
   checkCoinPickup(coinShape, flagName) {
     if (this[flagName]) {
       return
@@ -300,6 +377,35 @@ export default class Game extends Phaser.Scene {
     }
   }
 
+  checkHallMonitorTouch() {
+    const playerBounds = new Phaser.Geom.Rectangle(
+      this.player.x - this.player.width / 2,
+      this.player.y - this.player.height / 2,
+      this.player.width,
+      this.player.height
+    )
+
+    const hallMonitorBounds = new Phaser.Geom.Rectangle(
+      this.hallMonitor.x - this.hallMonitor.width / 2,
+      this.hallMonitor.y - this.hallMonitor.height / 2,
+      this.hallMonitor.width,
+      this.hallMonitor.height
+    )
+
+    const touching = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, hallMonitorBounds)
+
+    if (!touching) {
+      return
+    }
+
+    this.player.x = this.playerStartX
+    this.player.y = this.playerStartY
+    this.playerBody.setPosition(this.player.x, this.player.y)
+    this.playerShadow.setPosition(this.player.x, this.player.y + 14)
+    this.winText.setText('Tagged! Back to start.')
+    this.messageTimer = 1200
+  }
+
   checkExit() {
     const playerBounds = new Phaser.Geom.Rectangle(
       this.player.x - this.player.width / 2,
@@ -318,7 +424,9 @@ export default class Game extends Phaser.Scene {
     const touchingExit = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, exitZone)
 
     if (!touchingExit) {
-      this.winText.setText('')
+      if (this.messageTimer <= 0) {
+        this.winText.setText('')
+      }
       return
     }
 
@@ -326,8 +434,20 @@ export default class Game extends Phaser.Scene {
       this.hasExited = true
       this.winText.setText('You found both coins and escaped!')
       this.exitDoor.setFillStyle(0x9b6a38)
-    } else {
+    } else if (this.messageTimer <= 0) {
       this.winText.setText('The door is locked. Find both coins first.')
+    }
+  }
+
+  updateMessage(delta) {
+    if (this.messageTimer <= 0) {
+      return
+    }
+
+    this.messageTimer -= delta
+
+    if (this.messageTimer <= 0 && !this.hasExited) {
+      this.winText.setText('')
     }
   }
 }
