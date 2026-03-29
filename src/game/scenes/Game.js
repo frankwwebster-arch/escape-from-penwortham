@@ -181,7 +181,11 @@ export default class Game extends Phaser.Scene {
       }
     ]
 
+    this.obstacles = []
+
     this.walls.forEach((wall) => {
+      this.obstacles.push(new Phaser.Geom.Rectangle(wall.x, wall.y, wall.width, wall.height))
+
       this.add.rectangle(
         wall.x + wall.width / 2,
         wall.y + wall.height / 2,
@@ -496,23 +500,14 @@ export default class Game extends Phaser.Scene {
       this.player.height
     )
 
-    for (const wall of this.walls) {
-      const wallRect = new Phaser.Geom.Rectangle(wall.x, wall.y, wall.width, wall.height)
-
-      if (Phaser.Geom.Intersects.RectangleToRectangle(nextBounds, wallRect)) {
+    for (const obstacle of this.obstacles) {
+      if (this.rectsOverlap(nextBounds, obstacle)) {
         return
       }
     }
 
     if (!this.hasKey) {
-      const lockedDoorRect = new Phaser.Geom.Rectangle(
-        this.lockedDoorBlock.x,
-        this.lockedDoorBlock.y,
-        this.lockedDoorBlock.width,
-        this.lockedDoorBlock.height
-      )
-
-      if (Phaser.Geom.Intersects.RectangleToRectangle(nextBounds, lockedDoorRect)) {
+      if (this.rectsOverlap(nextBounds, this.getLockedDoorBounds())) {
         return
       }
     }
@@ -661,14 +656,8 @@ export default class Game extends Phaser.Scene {
     }
 
     const attackBounds = this.attackSwish.getBounds()
-    const dutyTeacherBounds = new Phaser.Geom.Rectangle(
-      this.dutyTeacher.x - this.dutyTeacher.width / 2,
-      this.dutyTeacher.y - this.dutyTeacher.height / 2,
-      this.dutyTeacher.width,
-      this.dutyTeacher.height
-    )
 
-    if (Phaser.Geom.Intersects.RectangleToRectangle(attackBounds, dutyTeacherBounds)) {
+    if (this.rectsOverlap(attackBounds, this.getTeacherBounds())) {
       this.attackHasHit = true
       this.defeatDutyTeacher()
     }
@@ -701,21 +690,7 @@ export default class Game extends Phaser.Scene {
       return
     }
 
-    const playerBounds = new Phaser.Geom.Rectangle(
-      this.player.x - this.player.width / 2,
-      this.player.y - this.player.height / 2,
-      this.player.width,
-      this.player.height
-    )
-
-    const dutyTeacherBounds = new Phaser.Geom.Rectangle(
-      this.dutyTeacher.x - this.dutyTeacher.width / 2,
-      this.dutyTeacher.y - this.dutyTeacher.height / 2,
-      this.dutyTeacher.width,
-      this.dutyTeacher.height
-    )
-
-    const touching = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, dutyTeacherBounds)
+    const touching = this.rectsOverlap(this.getPlayerBounds(), this.getTeacherBounds())
 
     if (!touching) {
       return
@@ -728,13 +703,6 @@ export default class Game extends Phaser.Scene {
   }
 
   checkExit() {
-    const playerBounds = new Phaser.Geom.Rectangle(
-      this.player.x - this.player.width / 2,
-      this.player.y - this.player.height / 2,
-      this.player.width,
-      this.player.height
-    )
-
     const exitZone = new Phaser.Geom.Rectangle(
       this.exit.x - this.exit.width / 2 - 10,
       this.exit.y - this.exit.height / 2,
@@ -742,7 +710,7 @@ export default class Game extends Phaser.Scene {
       this.exit.height
     )
 
-    const touchingExit = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, exitZone)
+    const touchingExit = this.rectsOverlap(this.getPlayerBounds(), exitZone)
 
     if (!touchingExit) {
       this.wasTouchingExit = false
@@ -869,5 +837,36 @@ export default class Game extends Phaser.Scene {
     this.playerFaceMarker.setPosition(markerX, markerY)
     this.playerFaceMarker.setSize(markerWidth, markerHeight)
     this.playerFaceMarker.setDisplaySize(markerWidth, markerHeight)
+  }
+
+  getPlayerBounds() {
+    return new Phaser.Geom.Rectangle(
+      this.player.x - this.player.width / 2,
+      this.player.y - this.player.height / 2,
+      this.player.width,
+      this.player.height
+    )
+  }
+
+  getTeacherBounds() {
+    return new Phaser.Geom.Rectangle(
+      this.dutyTeacher.x - this.dutyTeacher.width / 2,
+      this.dutyTeacher.y - this.dutyTeacher.height / 2,
+      this.dutyTeacher.width,
+      this.dutyTeacher.height
+    )
+  }
+
+  getLockedDoorBounds() {
+    return new Phaser.Geom.Rectangle(
+      this.lockedDoorBlock.x,
+      this.lockedDoorBlock.y,
+      this.lockedDoorBlock.width,
+      this.lockedDoorBlock.height
+    )
+  }
+
+  rectsOverlap(rectA, rectB) {
+    return Phaser.Geom.Intersects.RectangleToRectangle(rectA, rectB)
   }
 }
