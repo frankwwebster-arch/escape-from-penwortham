@@ -24,6 +24,10 @@ export default class Game extends Phaser.Scene {
 
     this.score = 0
     this.lives = 3
+    this.isGameStarted = false
+    this.isLevelSelected = false
+    this.selectedLevel = null
+    this.unlockedLevels = ['Nursery']
     this.hasCoin = false
     this.hasCoin2 = false
     this.hasKey = false
@@ -48,6 +52,8 @@ export default class Game extends Phaser.Scene {
     this.createPlayer()
     this.createUi()
     this.createLivesUi()
+    this.createTitleScreen()
+    this.createLevelSelectScreen()
 
     this.cursors = this.input.keyboard.createCursorKeys()
     this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
@@ -511,7 +517,111 @@ export default class Game extends Phaser.Scene {
       .setVisible(false)
   }
 
+  createTitleScreen() {
+    const overlay = this.add.rectangle(400, 300, 800, 600, 0x102535, 0.82)
+      .setInteractive()
+    const title = this.add.text(400, 230, 'Escape from Penwortham', {
+      fontFamily: 'Arial',
+      fontSize: '42px',
+      color: '#fff7dc'
+    }).setOrigin(0.5)
+    const subtitle = this.add.text(400, 285, 'School Escape Adventure', {
+      fontFamily: 'Arial',
+      fontSize: '22px',
+      color: '#d7edf7'
+    }).setOrigin(0.5)
+    const prompt = this.add.text(400, 365, 'Click to continue', {
+      fontFamily: 'Arial',
+      fontSize: '26px',
+      color: '#ffe58f'
+    }).setOrigin(0.5)
+
+    overlay.on('pointerdown', () => {
+      if (!this.isGameStarted) {
+        this.showLevelSelect()
+      }
+    })
+
+    this.titleContainer = this.add.container(0, 0, [overlay, title, subtitle, prompt])
+    this.titleContainer.setDepth(50)
+  }
+
+  createLevelSelectScreen() {
+    const overlay = this.add.rectangle(400, 300, 800, 600, 0x122433, 0.88)
+    const heading = this.add.text(400, 170, 'Select Level', {
+      fontFamily: 'Arial',
+      fontSize: '34px',
+      color: '#fff7dc'
+    }).setOrigin(0.5)
+
+    const nurseryButton = this.add.rectangle(400, 260, 260, 54, 0xdaf4dd)
+      .setStrokeStyle(3, 0x2f7a40)
+      .setInteractive()
+    const nurseryText = this.add.text(400, 260, 'Nursery', {
+      fontFamily: 'Arial',
+      fontSize: '24px',
+      color: '#215b30'
+    }).setOrigin(0.5)
+
+    nurseryButton.on('pointerdown', () => {
+      this.selectedLevel = 'Nursery'
+      this.isLevelSelected = true
+      this.levelSelectContainer.setVisible(false)
+    })
+
+    const corridorButton = this.add.rectangle(400, 340, 260, 54, 0x6f7f93, 0.55)
+      .setStrokeStyle(3, 0x42515f)
+    const corridorText = this.add.text(400, 340, 'Year 6 Corridor', {
+      fontFamily: 'Arial',
+      fontSize: '22px',
+      color: '#d7dde2'
+    }).setOrigin(0.5)
+    const corridorLock = this.add.text(540, 340, 'LOCKED', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#f8d98d'
+    }).setOrigin(0.5)
+
+    const playgroundButton = this.add.rectangle(400, 420, 260, 54, 0x6f7f93, 0.55)
+      .setStrokeStyle(3, 0x42515f)
+    const playgroundText = this.add.text(400, 420, 'Playground', {
+      fontFamily: 'Arial',
+      fontSize: '22px',
+      color: '#d7dde2'
+    }).setOrigin(0.5)
+    const playgroundLock = this.add.text(540, 420, 'LOCKED', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#f8d98d'
+    }).setOrigin(0.5)
+
+    this.levelSelectContainer = this.add.container(0, 0, [
+      overlay,
+      heading,
+      nurseryButton,
+      nurseryText,
+      corridorButton,
+      corridorText,
+      corridorLock,
+      playgroundButton,
+      playgroundText,
+      playgroundLock
+    ])
+    this.levelSelectContainer.setDepth(51)
+    this.levelSelectContainer.setVisible(false)
+  }
+
+  showLevelSelect() {
+    this.isGameStarted = true
+    this.titleContainer.setVisible(false)
+    this.levelSelectContainer.setVisible(true)
+  }
+
   update(time, delta) {
+    if (!this.isLevelSelected) {
+      return
+    }
+
     if (this.isGameOver) {
       if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
         this.scene.restart()
@@ -522,6 +632,10 @@ export default class Game extends Phaser.Scene {
     }
 
     if (this.hasExited) {
+      if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
+        this.scene.restart()
+      }
+
       this.updateMessage(delta)
       return
     }
@@ -817,6 +931,8 @@ export default class Game extends Phaser.Scene {
       this.hasExited = true
       this.updateDoorLook()
       this.showMessage('Unlocked! Home time!')
+      this.restartText.setText('Press R to restart')
+      this.restartText.setVisible(true)
     } else if (!this.wasTouchingExit) {
       this.showMessage('Door is locked.')
     }
@@ -944,6 +1060,7 @@ export default class Game extends Phaser.Scene {
   triggerGameOver() {
     this.isGameOver = true
     this.gameOverText.setVisible(true)
+    this.restartText.setText('Press R to restart')
     this.restartText.setVisible(true)
   }
 
