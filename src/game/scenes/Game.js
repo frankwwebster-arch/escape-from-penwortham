@@ -53,7 +53,7 @@ export default class Game extends Phaser.Scene {
   }
 
   update() {
-    const speed = 3
+    const speed = 4
 
     if (this.cursors.left.isDown) {
       this.player.x -= speed
