@@ -24,7 +24,7 @@ export default class Game extends Phaser.Scene {
     this.hasCoin = false
     this.hasCoin2 = false
     this.hasExited = false
-    this.messageTimer = 0
+    this.wasTouchingExit = false
 
     this.drawFloor()
     this.drawClassroomDecor()
@@ -266,15 +266,25 @@ export default class Game extends Phaser.Scene {
       color: '#1a1a1a'
     })
 
-    this.winText = this.add.text(20, 112, '', {
+    this.messageBox = this.add.rectangle(400, 96, 10, 34, 0x111111, 0.72)
+      .setStrokeStyle(2, 0xf4e7b5, 0.9)
+      .setDepth(20)
+      .setVisible(false)
+
+    this.messageText = this.add.text(400, 96, '', {
       fontFamily: 'Arial',
-      fontSize: '20px',
-      color: '#0b6b2a'
+      fontSize: '18px',
+      color: '#fff7dc',
+      align: 'center'
     })
+      .setOrigin(0.5)
+      .setDepth(21)
+      .setVisible(false)
   }
 
   update(time, delta) {
     if (this.hasExited) {
+      this.updateMessage(delta)
       return
     }
 
@@ -374,6 +384,12 @@ export default class Game extends Phaser.Scene {
       coinShape.setVisible(false)
       this.score += 1
       this.scoreText.setText(`Gold: ${this.score} / 2`)
+
+      if (this.score === 2) {
+        this.showMessage('Home Time door unlocked!')
+      } else {
+        this.showMessage('Gold collected!')
+      }
     }
   }
 
@@ -402,8 +418,7 @@ export default class Game extends Phaser.Scene {
     this.player.y = this.playerStartY
     this.playerBody.setPosition(this.player.x, this.player.y)
     this.playerShadow.setPosition(this.player.x, this.player.y + 14)
-    this.winText.setText('Tagged! Back to start.')
-    this.messageTimer = 1200
+    this.showMessage('Tagged! Back to start.')
   }
 
   checkExit() {
@@ -424,30 +439,54 @@ export default class Game extends Phaser.Scene {
     const touchingExit = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, exitZone)
 
     if (!touchingExit) {
-      if (this.messageTimer <= 0) {
-        this.winText.setText('')
-      }
+      this.wasTouchingExit = false
       return
     }
 
     if (this.hasCoin && this.hasCoin2) {
       this.hasExited = true
-      this.winText.setText('You found both coins and escaped!')
       this.exitDoor.setFillStyle(0x9b6a38)
-    } else if (this.messageTimer <= 0) {
-      this.winText.setText('The door is locked. Find both coins first.')
+      this.showMessage('You found both coins and escaped!')
+    } else if (!this.wasTouchingExit) {
+      this.showMessage('Door is locked. Collect the gold!')
     }
+
+    this.wasTouchingExit = true
   }
 
   updateMessage(delta) {
-    if (this.messageTimer <= 0) {
-      return
+    if (this.messageFadeTimer) {
+      this.messageFadeTimer -= delta
+
+      if (this.messageFadeTimer <= 0) {
+        this.messageFadeTimer = 0
+        this.messageBox.setVisible(false)
+        this.messageText.setVisible(false)
+      }
+    }
+  }
+
+  showMessage(text) {
+    if (this.messageTween) {
+      this.messageTween.stop()
     }
 
-    this.messageTimer -= delta
+    this.messageText.setText(text)
+    this.messageText.setAlpha(1)
+    this.messageText.setVisible(true)
 
-    if (this.messageTimer <= 0 && !this.hasExited) {
-      this.winText.setText('')
-    }
+    const textWidth = this.messageText.width
+    this.messageBox.width = textWidth + 32
+    this.messageBox.setAlpha(1)
+    this.messageBox.setVisible(true)
+
+    this.messageFadeTimer = 1000
+
+    this.messageTween = this.tweens.add({
+      targets: [this.messageBox, this.messageText],
+      alpha: 0,
+      duration: 1000,
+      ease: 'Sine.easeOut'
+    })
   }
 }
