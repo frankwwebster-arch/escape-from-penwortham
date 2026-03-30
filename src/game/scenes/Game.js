@@ -3,25 +3,70 @@ import Phaser from 'phaser'
 export default class Game extends Phaser.Scene {
   constructor() {
     super('Game')
+
+    this.tileSize = 16
+    this.tilesetKey = 'dungeon-tiles'
+    this.tilesetPath = 'assets/dungeon-tileset.png'
+    this.mapWidth = 100
+    this.mapHeight = 70
+    this.playerSpeed = 120
+  }
+
+  preload() {
+    console.info(`[Game] Loading tileset image: /${this.tilesetPath}`)
+
+    this.load.on('loaderror', (file) => {
+      console.error(`[Game] Failed to load asset: ${file.key} from ${file.src}`)
+    })
+
+    this.load.image(this.tilesetKey, this.tilesetPath)
   }
 
   create() {
-    this.tileSize = 16
-    this.mapWidth = 80
-    this.mapHeight = 60
-    this.playerSpeed = 120
+    console.info('[Game] Creating tilemap scene')
+    this.cameras.main.setBackgroundColor('#0f1320')
 
-    this.cameras.main.setBackgroundColor('#121018')
-
-    this.createGeneratedTextures()
+    if (!this.textures.exists(this.tilesetKey)) {
+      this.showSceneError(
+        'Missing tileset image',
+        `Expected public/${this.tilesetPath}`
+      )
+      return
+    }
 
     const level = this.buildLevelData()
+    const texture = this.textures.get(this.tilesetKey).getSourceImage()
+    const tileCount = Math.floor(texture.width / this.tileSize) * Math.floor(texture.height / this.tileSize)
+    const maxTileIndex = this.getMaxTileIndex(level)
+
+    console.info(
+      `[Game] Tileset size ${texture.width}x${texture.height}, tile size ${this.tileSize}, tile count ${tileCount}`
+    )
+
+    if (maxTileIndex >= tileCount) {
+      this.showSceneError(
+        'Tileset does not contain enough tiles',
+        `Highest tile index used is ${maxTileIndex}, but the tileset only has ${tileCount} tiles.`
+      )
+      return
+    }
 
     this.createTilemap(level)
+
+    if (!this.floorLayer || !this.wallLayer || !this.decorationLayer) {
+      this.showSceneError(
+        'Layer creation failed',
+        'One or more tilemap layers could not be created. Check the tileset PNG and layer setup.'
+      )
+      return
+    }
+
     this.createPlayer(level.playerStart)
     this.createCamera()
 
     this.cursors = this.input.keyboard.createCursorKeys()
+
+    console.info('[Game] Scene created successfully')
   }
 
   update() {
@@ -58,149 +103,35 @@ export default class Game extends Phaser.Scene {
     }
   }
 
-  createGeneratedTextures() {
-    this.createTilesetTexture()
-    this.createPlayerTexture()
-  }
-
-  createTilesetTexture() {
-    if (this.textures.exists('generated-tiles')) {
-      return
-    }
-
-    const size = this.tileSize
-    const graphics = this.make.graphics({ x: 0, y: 0, add: false })
-
-    graphics.fillStyle(0xc2b280)
-    graphics.fillRect(0, 0, size, size)
-    graphics.fillStyle(0xb09c69)
-    graphics.fillRect(0, size - 4, size, 4)
-    graphics.fillStyle(0xd8cc9d)
-    graphics.fillRect(0, 0, size, 3)
-
-    graphics.fillStyle(0xb09c69)
-    graphics.fillRect(size, 0, size, size)
-    graphics.fillStyle(0xcdbb89)
-    graphics.fillRect(size + 3, 3, size - 6, size - 6)
-    graphics.fillStyle(0x9b8758)
-    graphics.fillRect(size, size - 4, size, 4)
-
-    graphics.fillStyle(0x9f9389)
-    graphics.fillRect(size * 2, 0, size, size)
-    graphics.fillStyle(0xcfc5bc)
-    graphics.fillRect(size * 2, 0, size, 4)
-    graphics.fillStyle(0x73685f)
-    graphics.fillRect(size * 2, size - 4, size, 4)
-
-    graphics.fillStyle(0x86796f)
-    graphics.fillRect(size * 3, 0, size, size)
-    graphics.fillStyle(0xb6aba2)
-    graphics.fillRect(size * 3, 0, size, 3)
-    graphics.fillStyle(0x625750)
-    graphics.fillRect(size * 3 + 3, 5, size - 6, size - 8)
-
-    graphics.fillStyle(0x7a4a2d)
-    graphics.fillRect(0, size, size, size)
-    graphics.fillStyle(0x9f6942)
-    graphics.fillRect(3, size + 3, size - 6, size - 6)
-    graphics.fillStyle(0xc38a56)
-    graphics.fillRect(0, size, size, 3)
-
-    graphics.fillStyle(0x6f8f5f)
-    graphics.fillRect(size, size, size, size)
-    graphics.fillStyle(0x4a673e)
-    graphics.fillRect(size + 2, size + 2, size - 4, size - 4)
-    graphics.fillStyle(0x91b07a)
-    graphics.fillRect(size + 4, size + 4, size - 8, size - 8)
-
-    graphics.fillStyle(0x6b5a4a)
-    graphics.fillRect(size * 2, size, size, size)
-    graphics.fillStyle(0x8d7a66)
-    graphics.fillRect(size * 2 + 2, size + 2, size - 4, size - 4)
-    graphics.fillStyle(0xcfbe9f)
-    graphics.fillRect(size * 2 + 4, size + 4, size - 8, 3)
-
-    graphics.fillStyle(0x6b5f8f)
-    graphics.fillRect(size * 3, size, size, size)
-    graphics.fillStyle(0x534a70)
-    graphics.fillRect(size * 3, size + 10, size, 6)
-    graphics.fillStyle(0xb4a5d5)
-    graphics.fillRect(size * 3 + 3, size + 3, size - 6, 4)
-
-    graphics.fillStyle(0x5f5f6b)
-    graphics.fillRect(0, size * 2, size, size)
-    graphics.fillStyle(0x908c96)
-    graphics.fillRect(4, size * 2 + 4, size - 8, size - 8)
-
-    graphics.fillStyle(0x2f4e6d)
-    graphics.fillRect(size, size * 2, size, size)
-    graphics.fillStyle(0x4f78a1)
-    graphics.fillRect(size + 2, size * 2 + 2, size - 4, size - 4)
-    graphics.fillStyle(0xbfd8f0)
-    graphics.fillRect(size + 4, size * 2 + 4, size - 8, size - 8)
-
-    graphics.generateTexture('generated-tiles', size * 4, size * 4)
-    graphics.destroy()
-  }
-
-  createPlayerTexture() {
-    if (this.textures.exists('player-tile')) {
-      return
-    }
-
-    const size = this.tileSize
-    const graphics = this.make.graphics({ x: 0, y: 0, add: false })
-
-    graphics.fillStyle(0x000000, 0.18)
-    graphics.fillEllipse(size / 2, size - 2, 10, 4)
-
-    graphics.fillStyle(0xffd4b2)
-    graphics.fillRect(4, 1, 8, 6)
-    graphics.fillStyle(0x6d452c)
-    graphics.fillRect(3, 0, 10, 3)
-
-    graphics.fillStyle(0xb44343)
-    graphics.fillRect(3, 7, 10, 5)
-    graphics.fillStyle(0xffffff)
-    graphics.fillRect(6, 6, 4, 2)
-    graphics.fillStyle(0x5d647a)
-    graphics.fillRect(4, 12, 8, 2)
-    graphics.fillStyle(0x3b2b24)
-    graphics.fillRect(4, 14, 3, 2)
-    graphics.fillRect(9, 14, 3, 2)
-
-    graphics.generateTexture('player-tile', size, size)
-    graphics.destroy()
-  }
-
   buildLevelData() {
-    const floorData = this.createEmptyLayer()
-    const wallData = this.createEmptyLayer()
-    const decorationData = this.createEmptyLayer()
+    const floor = this.createEmptyLayer()
+    const walls = this.createEmptyLayer()
+    const decorations = this.createEmptyLayer()
 
-    const startRoom = { x: 4, y: 8, width: 14, height: 12 }
-    const topRoom = { x: 28, y: 6, width: 16, height: 12 }
-    const bottomRoom = { x: 48, y: 26, width: 18, height: 14 }
-    const corridorA = { x: 18, y: 12, width: 10, height: 4 }
-    const corridorB = { x: 36, y: 16, width: 4, height: 12 }
-    const corridorC = { x: 40, y: 26, width: 8, height: 4 }
+    const startRoom = { x: 6, y: 8, width: 18, height: 14 }
+    const topRoom = { x: 34, y: 6, width: 18, height: 14 }
+    const bottomRoom = { x: 56, y: 28, width: 22, height: 18 }
 
-    const rooms = [startRoom, topRoom, bottomRoom, corridorA, corridorB, corridorC]
+    const corridorA = { x: 24, y: 13, width: 10, height: 4 }
+    const corridorB = { x: 42, y: 20, width: 4, height: 12 }
+    const corridorC = { x: 46, y: 30, width: 10, height: 4 }
 
-    rooms.forEach((room) => {
-      this.paintFloorArea(floorData, room.x, room.y, room.width, room.height)
+    const walkableAreas = [startRoom, topRoom, bottomRoom, corridorA, corridorB, corridorC]
+
+    walkableAreas.forEach((area) => {
+      this.paintFloorArea(floor, area.x, area.y, area.width, area.height)
     })
 
-    this.buildWallLayer(floorData, wallData)
-    this.paintDecorations(decorationData, startRoom, topRoom, bottomRoom)
+    this.buildWallLayer(floor, walls)
+    this.paintDecorations(decorations, startRoom, topRoom, bottomRoom)
 
     return {
-      floorData,
-      wallData,
-      decorationData,
+      floor,
+      walls,
+      decorations,
       playerStart: {
-        x: (startRoom.x + 3) * this.tileSize + this.tileSize / 2,
-        y: (startRoom.y + 5) * this.tileSize + this.tileSize / 2
+        x: (startRoom.x + 4) * this.tileSize + this.tileSize / 2,
+        y: (startRoom.y + 7) * this.tileSize + this.tileSize / 2
       }
     }
   }
@@ -217,26 +148,27 @@ export default class Game extends Phaser.Scene {
     }
   }
 
-  buildWallLayer(floorData, wallData) {
+  buildWallLayer(floor, walls) {
     for (let y = 0; y < this.mapHeight; y += 1) {
       for (let x = 0; x < this.mapWidth; x += 1) {
-        if (floorData[y][x] !== -1) {
+        if (floor[y][x] !== -1) {
           continue
         }
 
-        const nearFloor = this.getNeighborFloorCount(floorData, x, y)
+        const hasAdjacentFloor = this.countAdjacentFloorTiles(floor, x, y) > 0
 
-        if (nearFloor === 0) {
+        if (!hasAdjacentFloor) {
           continue
         }
 
-        const floorAbove = this.isFloor(floorData, x, y + 1)
-        wallData[y][x] = floorAbove ? 2 : 3
+        // These tile ids assume the first few tiles in the dungeon sheet include
+        // basic wall blocks. If your tileset differs, adjust these indices.
+        walls[y][x] = this.isFloor(floor, x, y + 1) ? 2 : 3
       }
     }
   }
 
-  getNeighborFloorCount(floorData, x, y) {
+  countAdjacentFloorTiles(floor, x, y) {
     let count = 0
 
     for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
@@ -245,7 +177,7 @@ export default class Game extends Phaser.Scene {
           continue
         }
 
-        if (this.isFloor(floorData, x + offsetX, y + offsetY)) {
+        if (this.isFloor(floor, x + offsetX, y + offsetY)) {
           count += 1
         }
       }
@@ -254,25 +186,25 @@ export default class Game extends Phaser.Scene {
     return count
   }
 
-  isFloor(floorData, x, y) {
+  isFloor(floor, x, y) {
     if (x < 0 || y < 0 || x >= this.mapWidth || y >= this.mapHeight) {
       return false
     }
 
-    return floorData[y][x] !== -1
+    return floor[y][x] !== -1
   }
 
   paintDecorations(layer, startRoom, topRoom, bottomRoom) {
     this.paintDecorationRect(layer, startRoom.x + 2, startRoom.y + 2, 2, 1, 4)
     this.paintDecorationRect(layer, startRoom.x + 2, startRoom.y + 5, 2, 1, 4)
-    this.paintDecorationRect(layer, startRoom.x + 9, startRoom.y + 2, 3, 2, 6)
-    this.paintDecorationRect(layer, topRoom.x + 10, topRoom.y + 2, 3, 2, 4)
-    this.paintDecorationRect(layer, bottomRoom.x + 2, bottomRoom.y + 2, 1, 3, 5)
-    this.paintDecorationRect(layer, bottomRoom.x + 11, bottomRoom.y + 8, 3, 2, 6)
+    this.paintDecorationRect(layer, startRoom.x + 11, startRoom.y + 2, 2, 2, 5)
 
-    layer[startRoom.y + 4][startRoom.x + 6] = 7
-    layer[topRoom.y + 3][topRoom.x + 3] = 5
-    layer[bottomRoom.y + 4][bottomRoom.x + 8] = 9
+    this.paintDecorationRect(layer, topRoom.x + 10, topRoom.y + 2, 3, 2, 4)
+    this.paintDecorationRect(layer, topRoom.x + 3, topRoom.y + 3, 1, 1, 6)
+
+    this.paintDecorationRect(layer, bottomRoom.x + 2, bottomRoom.y + 2, 1, 3, 5)
+    this.paintDecorationRect(layer, bottomRoom.x + 12, bottomRoom.y + 9, 3, 2, 4)
+    this.paintDecorationRect(layer, bottomRoom.x + 8, bottomRoom.y + 4, 1, 1, 7)
   }
 
   paintDecorationRect(layer, startX, startY, width, height, tileIndex) {
@@ -283,6 +215,23 @@ export default class Game extends Phaser.Scene {
     }
   }
 
+  getMaxTileIndex(level) {
+    const layers = [level.floor, level.walls, level.decorations]
+    let maxIndex = -1
+
+    layers.forEach((layer) => {
+      layer.forEach((row) => {
+        row.forEach((tile) => {
+          if (tile > maxIndex) {
+            maxIndex = tile
+          }
+        })
+      })
+    })
+
+    return maxIndex
+  }
+
   createTilemap(level) {
     this.map = this.make.tilemap({
       tileWidth: this.tileSize,
@@ -291,37 +240,82 @@ export default class Game extends Phaser.Scene {
       height: this.mapHeight
     })
 
-    const tileset = this.map.addTilesetImage('generated-tiles', 'generated-tiles', this.tileSize, this.tileSize)
+    const tileset = this.map.addTilesetImage(
+      this.tilesetKey,
+      this.tilesetKey,
+      this.tileSize,
+      this.tileSize,
+      0,
+      0
+    )
 
-    this.floorLayer = this.map.createBlankLayer('floor', tileset)
-    this.wallLayer = this.map.createBlankLayer('walls', tileset)
-    this.decorationLayer = this.map.createBlankLayer('decorations', tileset)
+    if (!tileset) {
+      console.error('[Game] addTilesetImage returned null. Check the tileset key, tile size, and PNG.')
+      return
+    }
 
-    this.floorLayer.putTilesAt(level.floorData, 0, 0)
-    this.wallLayer.putTilesAt(level.wallData, 0, 0)
-    this.decorationLayer.putTilesAt(level.decorationData, 0, 0)
+    this.floorLayer = this.map.createBlankLayer('floor', tileset, 0, 0, this.mapWidth, this.mapHeight)
+    this.wallLayer = this.map.createBlankLayer('walls', tileset, 0, 0, this.mapWidth, this.mapHeight)
+    this.decorationLayer = this.map.createBlankLayer('decorations', tileset, 0, 0, this.mapWidth, this.mapHeight)
+
+    if (!this.floorLayer || !this.wallLayer || !this.decorationLayer) {
+      console.error('[Game] Failed to create one or more tilemap layers.')
+      return
+    }
+
+    this.floorLayer.putTilesAt(level.floor, 0, 0)
+    this.wallLayer.putTilesAt(level.walls, 0, 0)
+    this.decorationLayer.putTilesAt(level.decorations, 0, 0)
 
     this.wallLayer.setCollisionByExclusion([-1])
+
+    console.info('[Game] Tilemap layers created:', {
+      floor: !!this.floorLayer,
+      walls: !!this.wallLayer,
+      decorations: !!this.decorationLayer
+    })
   }
 
   createPlayer(startPosition) {
-    this.player = this.physics.add.sprite(startPosition.x, startPosition.y, 'player-tile')
-    this.player.setCollideWorldBounds(true)
-    this.player.body.setSize(10, 10)
-    this.player.body.setOffset(3, 5)
+    this.player = this.add.rectangle(startPosition.x, startPosition.y, 12, 12, 0xd87a58)
+      .setStrokeStyle(2, 0x2e1d1a)
+
+    this.physics.add.existing(this.player)
+
+    this.player.body.setCollideWorldBounds(true)
+    this.player.body.setSize(12, 12)
 
     this.physics.add.collider(this.player, this.wallLayer)
   }
 
   createCamera() {
-    const mapPixelWidth = this.mapWidth * this.tileSize
-    const mapPixelHeight = this.mapHeight * this.tileSize
+    const worldWidth = this.mapWidth * this.tileSize
+    const worldHeight = this.mapHeight * this.tileSize
 
-    this.cameras.main.setBounds(0, 0, mapPixelWidth, mapPixelHeight)
+    this.cameras.main.setBounds(0, 0, worldWidth, worldHeight)
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12)
     this.cameras.main.setZoom(2)
     this.cameras.main.roundPixels = true
 
-    this.physics.world.setBounds(0, 0, mapPixelWidth, mapPixelHeight)
+    this.physics.world.setBounds(0, 0, worldWidth, worldHeight)
+  }
+
+  showSceneError(title, details) {
+    console.error(`[Game] ${title}: ${details}`)
+
+    this.add.text(32, 32, title, {
+      fontFamily: 'Arial',
+      fontSize: '24px',
+      color: '#ff8080'
+    })
+
+    this.add.text(32, 72, details, {
+      fontFamily: 'Arial',
+      fontSize: '16px',
+      color: '#ffffff',
+      wordWrap: { width: 760 }
+    })
+
+    // Fail loudly instead of silently leaving a blank background.
   }
 }
