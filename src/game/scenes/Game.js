@@ -90,6 +90,12 @@ export default class Game extends Phaser.Scene {
     this.createCamera()
 
     this.cursors = this.input.keyboard.createCursorKeys()
+    this.wasd = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D
+    })
 
     console.info('[Game] Scene created successfully')
   }
@@ -102,16 +108,16 @@ export default class Game extends Phaser.Scene {
     let moveX = 0
     let moveY = 0
 
-    if (this.cursors.left.isDown) {
+    if (this.cursors.left.isDown || this.wasd.left.isDown) {
       moveX -= 1
     }
-    if (this.cursors.right.isDown) {
+    if (this.cursors.right.isDown || this.wasd.right.isDown) {
       moveX += 1
     }
-    if (this.cursors.up.isDown) {
+    if (this.cursors.up.isDown || this.wasd.up.isDown) {
       moveY -= 1
     }
-    if (this.cursors.down.isDown) {
+    if (this.cursors.down.isDown || this.wasd.down.isDown) {
       moveY += 1
     }
 
@@ -305,6 +311,16 @@ export default class Game extends Phaser.Scene {
   }
 
   createPlayer(startPosition) {
+    console.info('[Game] Creating player', startPosition)
+
+    if (!this.physics || !this.physics.add) {
+      this.showSceneError(
+        'Arcade Physics is unavailable',
+        'Enable Arcade Physics in src/game/main.js before creating the player.'
+      )
+      return
+    }
+
     this.player = this.add.rectangle(startPosition.x, startPosition.y, 12, 12, 0xe08a5b)
       .setStrokeStyle(2, 0x2a1b14)
 
@@ -312,8 +328,12 @@ export default class Game extends Phaser.Scene {
 
     this.player.body.setSize(12, 12)
     this.player.body.setCollideWorldBounds(true)
+    this.player.body.setDrag(1200, 1200)
+    this.player.body.setMaxVelocity(this.playerSpeed, this.playerSpeed)
 
     this.physics.add.collider(this.player, this.wallLayer)
+
+    console.info('[Game] Player created successfully')
   }
 
   createCamera() {
