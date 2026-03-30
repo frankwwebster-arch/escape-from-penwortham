@@ -6,1331 +6,322 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#a9d5e8')
+    this.tileSize = 16
+    this.mapWidth = 80
+    this.mapHeight = 60
+    this.playerSpeed = 120
 
-    this.roomLeft = 80
-    this.roomTop = 100
-    this.roomWidth = 640
-    this.roomHeight = 440
-    this.roomRight = this.roomLeft + this.roomWidth
-    this.roomBottom = this.roomTop + this.roomHeight
-    this.wallThickness = 20
-    this.showObstacleDebug = false
+    this.cameras.main.setBackgroundColor('#121018')
 
-    this.playerStartX = 150
-    this.playerStartY = 255
-    this.playerSpeed = 190
-    this.playerFacing = 'down'
+    this.createGeneratedTextures()
 
-    this.score = 0
-    this.lives = 3
-    this.isGameStarted = false
-    this.isLevelSelected = false
-    this.selectedLevel = null
-    this.unlockedLevels = ['Nursery']
-    this.isHiding = false
-    this.hasCoin = false
-    this.hasCoin2 = false
-    this.hasKey = false
-    this.hasExited = false
-    this.isGameOver = false
-    this.dutyTeacherDefeated = false
-    this.dutyTeacherFacing = 'right'
-    this.wasTouchingExit = false
-    this.attackTimer = 0
-    this.attackCooldownTimer = 0
-    this.attackDuration = 150
-    this.attackCooldown = 350
-    this.attackHasHit = false
-    this.caughtCooldownTimer = 0
-    this.caughtCooldownDuration = 700
+    const level = this.buildLevelData()
 
-    this.drawFloor()
-    this.drawClassroomDecor()
-    this.createWalls()
-    this.createExit()
-    this.createFurnitureObstacles()
-    this.createCoins()
-    this.createKey()
-    this.createDutyTeacher()
-    this.createPlayer()
-    this.createUi()
-    this.createLivesUi()
-    this.createTitleScreen()
-    this.createLevelSelectScreen()
-
-    this.cubbyZone = new Phaser.Geom.Rectangle(158, 410, 64, 32)
+    this.createTilemap(level)
+    this.createPlayer(level.playerStart)
+    this.createCamera()
 
     this.cursors = this.input.keyboard.createCursorKeys()
-    this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
-    this.hideKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
-    this.restartKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
-    this.updateLivesUi()
   }
 
-  drawFloor() {
-    this.add.rectangle(400, 300, 800, 600, 0xb7d8ea)
-    this.add.rectangle(400, 52, 760, 76, 0x1c4f69, 0.98).setStrokeStyle(4, 0xf7e9b6)
-    this.add.rectangle(400, 52, 726, 50, 0x508dad, 0.82).setStrokeStyle(2, 0xffffff, 0.2)
-    this.add.rectangle(400, 318, 700, 500, 0x000000, 0.14)
-
-    this.add.rectangle(
-      this.roomLeft + this.roomWidth / 2,
-      this.roomTop + this.roomHeight / 2 + 8,
-      this.roomWidth + 12,
-      this.roomHeight + 12,
-      0x87623f,
-      0.35
-    )
-
-    this.add.rectangle(
-      this.roomLeft + this.roomWidth / 2,
-      this.roomTop + this.roomHeight / 2,
-      this.roomWidth,
-      this.roomHeight,
-      0xf5e5bb
-    ).setStrokeStyle(6, 0xc6a76c)
-
-    this.add.rectangle(
-      this.roomLeft + this.roomWidth / 2,
-      this.roomTop + this.roomHeight / 2 - 4,
-      this.roomWidth - 14,
-      this.roomHeight - 14,
-      0xffffff,
-      0.05
-    )
-
-    const tileSize = 40
-
-    for (let y = this.roomTop; y < this.roomBottom; y += tileSize) {
-      for (let x = this.roomLeft; x < this.roomRight; x += tileSize) {
-        const tileIndex = ((x - this.roomLeft) / tileSize + (y - this.roomTop) / tileSize) % 2 === 0
-        const color = tileIndex ? 0xf2e1b2 : 0xe8d39b
-        const tile = this.add.rectangle(x + tileSize / 2, y + tileSize / 2, tileSize, tileSize, color)
-          .setStrokeStyle(1, 0xd6bf7a, 0.35)
-
-        tile.setAngle(tileIndex ? 0 : 0.15)
-        this.add.rectangle(x + tileSize / 2, y + 8, tileSize - 6, 3, 0xffffff, 0.12)
-      }
-    }
-
-    for (let y = this.roomTop + 18; y < this.roomBottom; y += 80) {
-      this.add.rectangle(this.roomLeft + this.roomWidth / 2, y, this.roomWidth - 34, 4, 0xffffff, 0.11)
-    }
-
-    this.add.ellipse(400, 326, 220, 132, 0x9f334a, 0.32)
-    this.add.rectangle(400, 320, 192, 118, 0xc84d5d, 0.92).setStrokeStyle(4, 0x893443)
-    this.add.rectangle(400, 320, 158, 84, 0xee9eaa, 0.28).setStrokeStyle(2, 0xfce4e7, 0.28)
-  }
-
-  drawClassroomDecor() {
-    this.add.rectangle(400, 82, 264, 38, 0x6d4b2f, 0.85).setStrokeStyle(3, 0x49311d)
-    this.add.rectangle(400, 78, 250, 28, 0x2f6b3d).setStrokeStyle(2, 0xb8d6b4)
-    this.add.text(323, 67, 'TODAY: ESCAPE!', {
-      fontFamily: 'Arial',
-      fontSize: '18px',
-      color: '#f4f7f0'
-    })
-
-    const deskPositions = [
-      { x: 165, y: 150 },
-      { x: 245, y: 150 },
-      { x: 165, y: 205 },
-      { x: 245, y: 205 }
-    ]
-
-    deskPositions.forEach((desk) => {
-      this.add.rectangle(desk.x, desk.y + 8, 74, 42, 0x7a5635, 0.28)
-      this.add.rectangle(desk.x, desk.y, 72, 30, 0xd7b07a).setStrokeStyle(2, 0x75502f)
-      this.add.rectangle(desk.x, desk.y + 14, 68, 14, 0xa36d42).setStrokeStyle(1, 0x70492d)
-      this.add.rectangle(desk.x, desk.y - 13, 58, 5, 0xf2debc, 0.75)
-      this.add.rectangle(desk.x - 22, desk.y + 18, 6, 18, 0x6e4d2f)
-      this.add.rectangle(desk.x + 22, desk.y + 18, 6, 18, 0x6e4d2f)
-    })
-
-    this.add.rectangle(585, 190, 118, 60, 0x7f5a37, 0.3)
-    this.add.rectangle(585, 176, 114, 34, 0xd4aa73).setStrokeStyle(3, 0x6e4d2f)
-    this.add.rectangle(585, 194, 110, 18, 0xa26d40).setStrokeStyle(2, 0x6e4d2f)
-    this.add.rectangle(585, 159, 90, 7, 0xf3dfbe, 0.85)
-    this.add.rectangle(550, 195, 12, 18, 0x6e4d2f)
-    this.add.rectangle(620, 195, 12, 18, 0x6e4d2f)
-    this.add.text(545, 170, 'Teacher Desk', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#2c1b12'
-    })
-
-    this.add.rectangle(122, 366, 42, 92, 0x6b3b2d, 0.3)
-    this.add.rectangle(120, 360, 40, 78, 0xbc5750).setStrokeStyle(3, 0x6e2323)
-    this.add.rectangle(120, 329, 30, 10, 0xe7c491, 0.95)
-    this.add.rectangle(120, 346, 28, 10, 0xeab04c, 0.85)
-    this.add.rectangle(120, 364, 28, 10, 0x73b0d4, 0.85)
-    this.add.rectangle(120, 382, 28, 10, 0xd66d56, 0.85)
-    this.add.text(103, 328, 'BOOKS', {
-      fontFamily: 'Arial',
-      fontSize: '12px',
-      color: '#5f1d1d'
-    })
-
-    this.add.rectangle(190, 434, 104, 64, 0x365d54, 0.26)
-    this.add.rectangle(190, 426, 102, 52, 0x4c9a8b).setStrokeStyle(3, 0x235347)
-    this.add.rectangle(190, 404, 90, 10, 0xc8f1e4, 0.9)
-    this.add.rectangle(166, 430, 28, 40, 0x2b6a5a, 0.85)
-    this.add.rectangle(214, 430, 28, 40, 0x2b6a5a, 0.85)
-    this.add.rectangle(166, 430, 6, 40, 0xe7fffa, 0.16)
-    this.add.rectangle(214, 430, 6, 40, 0xe7fffa, 0.16)
-    this.add.circle(190, 402, 7, 0xfff0a8, 0.95)
-    this.add.text(154, 418, 'HIDE HERE', {
-      fontFamily: 'Arial',
-      fontSize: '13px',
-      color: '#103c33'
-    })
-
-    this.add.rectangle(670, 425, 74, 52, 0x5e4d3c, 0.28)
-    this.add.rectangle(670, 420, 72, 34, 0x9d8567).setStrokeStyle(3, 0x584533)
-    this.add.rectangle(670, 438, 68, 14, 0x735d49).setStrokeStyle(1, 0x4e3e30)
-    this.add.rectangle(670, 405, 56, 8, 0xe4cfaf, 0.9)
-    this.add.text(650, 412, 'TRAYS', {
-      fontFamily: 'Arial',
-      fontSize: '12px',
-      color: '#fff6e8'
-    })
-  }
-
-  createWalls() {
-    this.wallColor = 0x6f7f93
-    this.walls = [
-      {
-        x: this.roomLeft,
-        y: this.roomTop,
-        width: this.roomWidth,
-        height: this.wallThickness
-      },
-      {
-        x: this.roomLeft,
-        y: this.roomBottom - this.wallThickness,
-        width: this.roomWidth,
-        height: this.wallThickness
-      },
-      {
-        x: this.roomLeft,
-        y: this.roomTop,
-        width: this.wallThickness,
-        height: this.roomHeight
-      },
-      {
-        x: this.roomRight - this.wallThickness,
-        y: this.roomTop,
-        width: this.wallThickness,
-        height: 150
-      },
-      {
-        x: this.roomRight - this.wallThickness,
-        y: this.roomTop + 290,
-        width: this.wallThickness,
-        height: this.roomHeight - 290
-      }
-    ]
-
-    this.obstacles = []
-
-    this.walls.forEach((wall) => {
-      this.obstacles.push(new Phaser.Geom.Rectangle(wall.x, wall.y, wall.width, wall.height))
-
-      const body = this.add.rectangle(
-        wall.x + wall.width / 2,
-        wall.y + wall.height / 2,
-        wall.width,
-        wall.height,
-        this.wallColor
-      ).setStrokeStyle(3, 0xe8edf1)
-
-      this.add.rectangle(
-        wall.x + wall.width / 2,
-        wall.y + wall.height / 2 - 2,
-        Math.max(6, wall.width - 8),
-        Math.max(6, wall.height - 8),
-        0xffffff,
-        0.06
-      )
-
-      if (wall.width > wall.height) {
-        this.add.rectangle(
-          wall.x + wall.width / 2,
-          wall.y + 4,
-          Math.max(8, wall.width - 10),
-          5,
-          0xf6f7fb,
-          0.3
-        )
-        this.add.rectangle(
-          wall.x + wall.width / 2,
-          wall.y + wall.height - 4,
-          Math.max(8, wall.width - 6),
-          6,
-          0x4d5a67,
-          0.28
-        )
-      } else {
-        this.add.rectangle(
-          wall.x + 4,
-          wall.y + wall.height / 2,
-          5,
-          Math.max(8, wall.height - 10),
-          0xf6f7fb,
-          0.24
-        )
-        this.add.rectangle(
-          wall.x + wall.width - 4,
-          wall.y + wall.height / 2,
-          6,
-          Math.max(8, wall.height - 6),
-          0x4d5a67,
-          0.28
-        )
-      }
-
-      body.setDepth(5)
-    })
-  }
-
-  createExit() {
-    this.exit = {
-      x: this.roomRight - 12,
-      y: this.roomTop + 220,
-      width: 24,
-      height: 120
-    }
-
-    this.lockedDoorBlock = {
-      x: this.roomRight - this.wallThickness,
-      y: this.exit.y - this.exit.height / 2,
-      width: this.wallThickness,
-      height: this.exit.height
-    }
-
-    this.exitGlowShadow = this.add.ellipse(this.exit.x - 8, this.exit.y + 8, 42, 132, 0x000000, 0.18)
-    this.exitArch = this.add.ellipse(this.exit.x - 2, this.exit.y - 43, 38, 28, 0x6f4123, 0.98)
-      .setStrokeStyle(2, 0x42210f)
-
-    this.exitFrame = this.add.rectangle(
-      this.exit.x,
-      this.exit.y,
-      28,
-      126,
-      0x58341d
-    )
-
-    this.exitDoor = this.add.rectangle(
-      this.exit.x - 3,
-      this.exit.y,
-      16,
-      100,
-      0x8b5a2b
-    ).setStrokeStyle(2, 0x59371c)
-
-    this.exitDoorPanel = this.add.rectangle(this.exit.x - 3, this.exit.y + 8, 10, 54, 0xa66c36).setStrokeStyle(1, 0x69401f)
-    this.exitHandle = this.add.circle(this.exit.x + 2, this.exit.y, 3, 0xffd54f)
-    this.exitLockBar = this.add.rectangle(this.exit.x - 3, this.exit.y + 8, 18, 10, 0xb73939)
-      .setStrokeStyle(2, 0x6b1d1d)
-    this.exitOpenGlow = this.add.ellipse(this.exit.x - 14, this.exit.y, 36, 104, 0xbff7a8, 0.42)
-      .setVisible(false)
-    this.exitStep = this.add.rectangle(this.exit.x - 6, this.exit.y + 62, 38, 10, 0x8e989d).setStrokeStyle(2, 0x61686c)
-
-    this.exitWindow = this.add.rectangle(this.exit.x - 3, this.exit.y - 24, 9, 18, 0x8fc8e8, 0.8)
-      .setStrokeStyle(1, 0x2c5b73)
-
-    this.exitMat = this.add.rectangle(this.exit.x - 22, this.exit.y + 72, 42, 14, 0x74455c, 0.8).setStrokeStyle(2, 0x4a2738)
-
-    this.updateDoorLook()
-  }
-
-  createFurnitureObstacles() {
-    this.furnitureObstacles = []
-
-    const furnitureRects = [
-      new Phaser.Geom.Rectangle(140, 138, 50, 24),
-      new Phaser.Geom.Rectangle(220, 138, 50, 24),
-      new Phaser.Geom.Rectangle(140, 193, 50, 24),
-      new Phaser.Geom.Rectangle(220, 193, 50, 24),
-      new Phaser.Geom.Rectangle(540, 160, 90, 38),
-      new Phaser.Geom.Rectangle(108, 323, 24, 68),
-      new Phaser.Geom.Rectangle(642, 403, 56, 34)
-    ]
-
-    furnitureRects.forEach((rect) => {
-      this.furnitureObstacles.push(rect)
-      this.obstacles.push(rect)
-
-      if (this.showObstacleDebug) {
-        this.add.rectangle(
-          rect.x + rect.width / 2,
-          rect.y + rect.height / 2,
-          rect.width,
-          rect.height,
-          0xff0000,
-          0.25
-        ).setStrokeStyle(2, 0xaa0000, 0.8)
-      }
-    })
-  }
-
-  createCoins() {
-    this.coin = this.createCoin(280, 300)
-    this.coin2 = this.createCoin(585, 425)
-
-    this.tweens.add({
-      targets: [this.coin, this.coin2],
-      scaleX: 1.12,
-      scaleY: 1.12,
-      duration: 550,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    })
-  }
-
-  createCoin(x, y) {
-    const coin = this.add.container(x, y)
-    const glow = this.add.circle(0, 1, 18, 0xfff1a8, 0.28)
-    const sparkleA = this.add.star(0, 0, 4, 9, 14, 0xfff6c5, 0.18)
-    const sparkleB = this.add.star(3, -1, 4, 6, 10, 0xffffff, 0.16)
-    const outer = this.add.circle(0, 0, 11, 0xffd54f).setStrokeStyle(3, 0xc88a00)
-    const inner = this.add.circle(0, 0, 7, 0xffef99)
-    const rim = this.add.arc(0, 0, 9, 210, 330, false, 0xffc829, 0.5).setStrokeStyle(2, 0xf9f1b2)
-    const shine = this.add.rectangle(-3, -3, 6, 2, 0xffffff, 0.7).setAngle(-25)
-    const mark = this.add.text(-4, -7, 'C', {
-      fontFamily: 'Arial',
-      fontSize: '11px',
-      color: '#9a6a00'
-    })
-
-    coin.add([glow, sparkleA, sparkleB, outer, inner, rim, shine, mark])
-    return coin
-  }
-
-  createKey() {
-    this.key = this.add.container(505, 245)
-
-    const keyGlow = this.add.circle(0, 0, 22, 0xa9f0ff, 0.34)
-    const keySparkle = this.add.star(0, 0, 4, 10, 16, 0xe6fbff, 0.18)
-    const keyHead = this.add.circle(0, 0, 9, 0x66d7ff).setStrokeStyle(3, 0x0b6f95)
-    const keyHole = this.add.circle(0, 0, 3, 0xe9ddb8)
-    const keyStem = this.add.rectangle(16, 0, 24, 6, 0x66d7ff).setStrokeStyle(2, 0x0b6f95)
-    const keyToothTop = this.add.rectangle(24, -5, 5, 7, 0x66d7ff).setStrokeStyle(2, 0x0b6f95)
-    const keyToothBottom = this.add.rectangle(18, 5, 5, 7, 0x66d7ff).setStrokeStyle(2, 0x0b6f95)
-    const keyShine = this.add.rectangle(-2, -6, 8, 3, 0xffffff, 0.7).setAngle(-30)
-
-    this.key.add([keyGlow, keySparkle, keyHead, keyHole, keyStem, keyToothTop, keyToothBottom, keyShine])
-
-    this.tweens.add({
-      targets: this.key,
-      angle: 8,
-      duration: 700,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    })
-
-    this.key.setVisible(false)
-  }
-
-  createDutyTeacher() {
-    this.dutyTeacher = {
-      x: 420,
-      y: 360,
-      width: 28,
-      height: 28,
-      leftLimit: 330,
-      rightLimit: 610,
-      speed: 90,
-      direction: 1
-    }
-
-    this.dutyTeacherVisionCone = this.add.graphics().setDepth(3)
-    this.dutyTeacherShadow = this.add.ellipse(this.dutyTeacher.x, this.dutyTeacher.y + 18, 32, 14, 0x000000, 0.22)
-    this.dutyTeacherBody = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 2, 24, 25, 0x3f5f7d)
-      .setStrokeStyle(3, 0x22394c)
-    this.dutyTeacherShirt = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 3, 14, 11, 0xf3f3ef)
-      .setStrokeStyle(1, 0x7a8d9e)
-    this.dutyTeacherTie = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 1, 4, 10, 0xc94e4e)
-    this.dutyTeacherHead = this.add.circle(this.dutyTeacher.x, this.dutyTeacher.y - 16, 10, 0xffd4b0)
-      .setStrokeStyle(2, 0x7c4d39)
-    this.dutyTeacherHair = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y - 22, 18, 7, 0x4b392f)
-    this.dutyTeacherBlazer = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 4, 18, 12, 0x58799a, 0.95)
-    this.dutyTeacherBadge = this.add.rectangle(this.dutyTeacher.x + 6, this.dutyTeacher.y + 1, 8, 8, 0xf4d35e)
-      .setStrokeStyle(1, 0x9b7b12)
-    this.dutyTeacherClipboard = this.add.rectangle(this.dutyTeacher.x - 11, this.dutyTeacher.y + 4, 10, 15, 0xf7efcc)
-      .setAngle(-8)
-      .setStrokeStyle(1, 0x7b6c45)
-    this.dutyTeacherArms = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 2, 28, 4, 0x354d64)
-    this.dutyTeacherShoes = this.add.rectangle(this.dutyTeacher.x, this.dutyTeacher.y + 15, 18, 5, 0x2a2a33)
-    this.dutyTeacherMarker = this.add.rectangle(this.dutyTeacher.x + 8, this.dutyTeacher.y - 15, 5, 10, 0xffffff, 0.6)
-    this.dutyTeacherLabel = this.add.text(this.dutyTeacher.x - 36, this.dutyTeacher.y - 46, 'Duty Teacher', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#5c2020'
-    })
-
-    this.updateDutyTeacherVisionCone()
-  }
-
-  createPlayer() {
-    this.player = {
-      x: this.playerStartX,
-      y: this.playerStartY,
-      width: 26,
-      height: 26
-    }
-
-    this.playerShadow = this.add.ellipse(this.player.x, this.player.y + 18, 30, 12, 0x000000, 0.24)
-    this.playerBody = this.add.rectangle(this.player.x, this.player.y + 2, 22, 18, 0xc94d4d)
-      .setStrokeStyle(3, 0x7d2424)
-    this.playerCollar = this.add.rectangle(this.player.x, this.player.y - 8, 12, 5, 0xffffff)
-      .setStrokeStyle(1, 0xd0d0d0)
-    this.playerShorts = this.add.rectangle(this.player.x, this.player.y + 12, 20, 9, 0x7b8794)
-      .setStrokeStyle(1, 0x4d5660)
-    this.playerHead = this.add.circle(this.player.x, this.player.y - 15, 11, 0xffd9b8)
-      .setStrokeStyle(2, 0x8a5c42)
-    this.playerHair = this.add.rectangle(this.player.x, this.player.y - 22, 20, 8, 0x6a4328)
-    this.playerArms = this.add.rectangle(this.player.x, this.player.y + 1, 28, 4, 0xa53b3b)
-    this.playerBag = this.add.rectangle(this.player.x + 8, this.player.y + 5, 7, 10, 0x8b6b3f).setStrokeStyle(1, 0x604626)
-    this.playerSocks = this.add.rectangle(this.player.x, this.player.y + 17, 14, 5, 0xf5f5f5)
-    this.playerShoes = this.add.rectangle(this.player.x, this.player.y + 21, 16, 5, 0x3f2d23)
-    this.playerFaceMarker = this.add.rectangle(this.player.x, this.player.y - 10, 10, 4, 0xffffff)
-      .setOrigin(0.5)
-
-    this.attackSwish = this.add.rectangle(this.player.x, this.player.y, 24, 14, 0xffffff, 0.45)
-      .setStrokeStyle(2, 0xffd54f)
-      .setVisible(false)
-  }
-
-  createUi() {
-    this.add.rectangle(400, 50, 760, 76, 0x163b4d, 0.28)
-    this.hudPanel = this.add.rectangle(400, 50, 736, 60, 0x214f65, 0.94).setStrokeStyle(3, 0xf3e5b5)
-    this.hudTitle = this.add.text(42, 18, 'Escape from Penwortham', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#fff6d8'
-    })
-
-    this.hudSubtitle = this.add.text(42, 46, 'Nursery Tutorial', {
-      fontFamily: 'Arial',
-      fontSize: '13px',
-      color: '#d7edf7'
-    })
-
-    this.scoreBadge = this.add.rectangle(458, 50, 124, 34, 0xf6ecc0).setStrokeStyle(2, 0x92743b)
-    this.scoreText = this.add.text(410, 40, 'Gold: 0 / 2', {
-      fontFamily: 'Arial',
-      fontSize: '17px',
-      color: '#3b2b14'
-    })
-
-    this.keyBadge = this.add.rectangle(586, 50, 116, 34, 0xd8eef8).setStrokeStyle(2, 0x3e7998)
-    this.keyStatusText = this.add.text(542, 40, 'Key: Missing', {
-      fontFamily: 'Arial',
-      fontSize: '17px',
-      color: '#16435a'
-    })
-
-    this.messageBox = this.add.rectangle(400, 96, 10, 34, 0x111111, 0.72)
-      .setStrokeStyle(2, 0xf4e7b5, 0.9)
-      .setDepth(20)
-      .setVisible(false)
-
-    this.messageText = this.add.text(400, 96, '', {
-      fontFamily: 'Arial',
-      fontSize: '18px',
-      color: '#fff7dc',
-      align: 'center'
-    })
-      .setOrigin(0.5)
-      .setDepth(21)
-      .setVisible(false)
-
-    this.hiddenText = this.add.text(this.player.x, this.player.y - 34, 'Hidden', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#f4fff9'
-    })
-      .setOrigin(0.5)
-      .setDepth(22)
-      .setVisible(false)
-
-    this.updateHud()
-  }
-
-  createLivesUi() {
-    this.hearts = []
-
-    this.livesBadge = this.add.rectangle(698, 50, 118, 34, 0xf9d8d8).setStrokeStyle(2, 0xa34d4d)
-    this.livesLabel = this.add.text(652, 40, 'Lives', {
-      fontFamily: 'Arial',
-      fontSize: '17px',
-      color: '#6b2323'
-    })
-
-    for (let i = 0; i < 3; i += 1) {
-      const heartX = 703 + i * 24
-      const heartY = 50
-      const heart = this.add.container(heartX, heartY)
-      const shadow = this.add.triangle(1, 5, -11, -1, 11, -1, 0, 12, 0x8e2f3c, 0.25)
-      const leftLobe = this.add.circle(-5, -3, 6, 0xe14b5a)
-      const rightLobe = this.add.circle(5, -3, 6, 0xe14b5a)
-      const point = this.add.triangle(0, 4, -11, -1, 11, -1, 0, 12, 0xe14b5a)
-      const shine = this.add.circle(-3, -5, 2, 0xffffff, 0.35)
-
-      heart.add([shadow, leftLobe, rightLobe, point, shine])
-      this.hearts.push(heart)
-    }
-
-    this.gameOverText = this.add.text(400, 260, 'Game Over', {
-      fontFamily: 'Arial',
-      fontSize: '48px',
-      color: '#fff7dc'
-    })
-      .setOrigin(0.5)
-      .setDepth(30)
-      .setVisible(false)
-
-    this.restartText = this.add.text(400, 310, 'Press R to restart', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#fff7dc'
-    })
-      .setOrigin(0.5)
-      .setDepth(30)
-      .setVisible(false)
-  }
-
-  createTitleScreen() {
-    const overlay = this.add.rectangle(400, 300, 800, 600, 0x102535, 0.84)
-      .setInteractive()
-    const panelShadow = this.add.rectangle(400, 288, 428, 272, 0x000000, 0.2)
-    const panel = this.add.rectangle(400, 280, 420, 260, 0x19455a, 0.95).setStrokeStyle(4, 0xf4e6b6)
-    const stripe = this.add.rectangle(400, 188, 380, 24, 0x3d7d9a, 0.8)
-    const title = this.add.text(400, 228, 'Escape from Penwortham', {
-      fontFamily: 'Arial',
-      fontSize: '38px',
-      color: '#fff7dc',
-      align: 'center'
-    }).setOrigin(0.5)
-    const subtitle = this.add.text(400, 286, 'School Escape Adventure', {
-      fontFamily: 'Arial',
-      fontSize: '21px',
-      color: '#d7edf7'
-    }).setOrigin(0.5)
-    const promptPanel = this.add.rectangle(400, 364, 220, 42, 0xf1d68a).setStrokeStyle(2, 0x9e7c2e)
-    const prompt = this.add.text(400, 364, 'Click to continue', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#5f4612'
-    }).setOrigin(0.5)
-    const subHint = this.add.text(400, 412, 'Collect gold, outsmart the Duty Teacher, then head home.', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#e4f3f9',
-      align: 'center'
-    }).setOrigin(0.5)
-
-    overlay.on('pointerdown', () => {
-      if (!this.isGameStarted) {
-        this.showLevelSelect()
-      }
-    })
-
-    this.titleContainer = this.add.container(0, 0, [overlay, panelShadow, panel, stripe, title, subtitle, promptPanel, prompt, subHint])
-    this.titleContainer.setDepth(50)
-  }
-
-  createLevelSelectScreen() {
-    const overlay = this.add.rectangle(400, 300, 800, 600, 0x122433, 0.88)
-    const panelShadow = this.add.rectangle(400, 300, 470, 350, 0x000000, 0.22)
-    const panel = this.add.rectangle(400, 292, 458, 338, 0x19455a, 0.95).setStrokeStyle(4, 0xf4e6b6)
-    const heading = this.add.text(400, 170, 'Select Level', {
-      fontFamily: 'Arial',
-      fontSize: '34px',
-      color: '#fff7dc'
-    }).setOrigin(0.5)
-
-    const nurseryButton = this.add.rectangle(400, 252, 294, 60, 0xdaf4dd)
-      .setStrokeStyle(3, 0x2f7a40)
-      .setInteractive()
-    const nurseryText = this.add.text(400, 260, 'Nursery', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#215b30'
-    }).setOrigin(0.5)
-    const nurseryTag = this.add.text(520, 260, 'READY', {
-      fontFamily: 'Arial',
-      fontSize: '12px',
-      color: '#2f7a40'
-    }).setOrigin(0.5)
-
-    nurseryButton.on('pointerdown', () => {
-      this.selectedLevel = 'Nursery'
-      this.isLevelSelected = true
-      this.levelSelectContainer.setVisible(false)
-    })
-
-    const corridorButton = this.add.rectangle(400, 336, 294, 58, 0x6f7f93, 0.55)
-      .setStrokeStyle(3, 0x42515f)
-    const corridorText = this.add.text(400, 340, 'Year 6 Corridor', {
-      fontFamily: 'Arial',
-      fontSize: '22px',
-      color: '#d7dde2'
-    }).setOrigin(0.5)
-    const corridorLock = this.add.text(525, 340, 'LOCKED', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#f8d98d'
-    }).setOrigin(0.5)
-
-    const playgroundButton = this.add.rectangle(400, 420, 294, 58, 0x6f7f93, 0.55)
-      .setStrokeStyle(3, 0x42515f)
-    const playgroundText = this.add.text(400, 420, 'Playground', {
-      fontFamily: 'Arial',
-      fontSize: '22px',
-      color: '#d7dde2'
-    }).setOrigin(0.5)
-    const playgroundLock = this.add.text(525, 420, 'LOCKED', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#f8d98d'
-    }).setOrigin(0.5)
-    const footer = this.add.text(400, 500, 'More of Penwortham will unlock later.', {
-      fontFamily: 'Arial',
-      fontSize: '15px',
-      color: '#d7edf7'
-    }).setOrigin(0.5)
-
-    this.levelSelectContainer = this.add.container(0, 0, [
-      overlay,
-      panelShadow,
-      panel,
-      heading,
-      nurseryButton,
-      nurseryText,
-      nurseryTag,
-      corridorButton,
-      corridorText,
-      corridorLock,
-      playgroundButton,
-      playgroundText,
-      playgroundLock,
-      footer
-    ])
-    this.levelSelectContainer.setDepth(51)
-    this.levelSelectContainer.setVisible(false)
-  }
-
-  showLevelSelect() {
-    this.isGameStarted = true
-    this.titleContainer.setVisible(false)
-    this.levelSelectContainer.setVisible(true)
-  }
-
-  update(time, delta) {
-    if (!this.isLevelSelected) {
+  update() {
+    if (!this.player || !this.cursors) {
       return
     }
 
-    if (this.isGameOver) {
-      if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
-        this.scene.restart()
-      }
-
-      this.updateMessage(delta)
-      return
-    }
-
-    if (this.hasExited) {
-      if (Phaser.Input.Keyboard.JustDown(this.restartKey)) {
-        this.scene.restart()
-      }
-
-      this.updateMessage(delta)
-      return
-    }
-
-    const dt = delta / 1000
-    const inCubbyZone = this.rectsOverlap(this.getPlayerBounds(), this.cubbyZone)
     let moveX = 0
     let moveY = 0
 
-    if (this.caughtCooldownTimer > 0) {
-      this.caughtCooldownTimer -= delta
-
-      if (this.caughtCooldownTimer < 0) {
-        this.caughtCooldownTimer = 0
-      }
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.hideKey) && inCubbyZone) {
-      this.isHiding = !this.isHiding
-      this.setPlayerAlpha(this.isHiding ? 0.4 : 1)
-
-      if (this.isHiding) {
-        this.showMessage('Hiding...')
-      }
-    }
-
-    if (!this.isHiding && this.cursors.left.isDown) {
+    if (this.cursors.left.isDown) {
       moveX -= 1
-      this.playerFacing = 'left'
     }
-    if (!this.isHiding && this.cursors.right.isDown) {
+    if (this.cursors.right.isDown) {
       moveX += 1
-      this.playerFacing = 'right'
     }
-    if (!this.isHiding && this.cursors.up.isDown) {
+    if (this.cursors.up.isDown) {
       moveY -= 1
-      this.playerFacing = 'up'
     }
-    if (!this.isHiding && this.cursors.down.isDown) {
+    if (this.cursors.down.isDown) {
       moveY += 1
-      this.playerFacing = 'down'
     }
 
-    if (
-      Phaser.Input.Keyboard.JustDown(this.attackKey) &&
-      this.attackTimer <= 0 &&
-      this.attackCooldownTimer <= 0
-    ) {
-      this.startAttack()
-    }
+    const direction = new Phaser.Math.Vector2(moveX, moveY)
 
-    if (moveX !== 0 || moveY !== 0) {
-      const direction = new Phaser.Math.Vector2(moveX, moveY).normalize()
-      const distance = this.playerSpeed * dt
-
-      this.movePlayer(direction.x * distance, 0)
-      this.movePlayer(0, direction.y * distance)
-    }
-
-    this.updateDutyTeacher(dt)
-    this.updateAttack(delta)
-
-    this.updatePlayerLook()
-    this.updateHidingUi()
-
-    this.checkCoinPickup(this.coin, 'hasCoin')
-    this.checkCoinPickup(this.coin2, 'hasCoin2')
-    this.checkKeyPickup()
-    this.checkAttackHit()
-    this.checkDutyTeacherTouch()
-    this.checkExit()
-    this.updateMessage(delta)
-  }
-
-  movePlayer(deltaX, deltaY) {
-    const nextX = this.player.x + deltaX
-    const nextY = this.player.y + deltaY
-
-    const nextBounds = new Phaser.Geom.Rectangle(
-      nextX - this.player.width / 2,
-      nextY - this.player.height / 2,
-      this.player.width,
-      this.player.height
-    )
-
-    for (const obstacle of this.obstacles) {
-      if (this.rectsOverlap(nextBounds, obstacle)) {
-        return
-      }
-    }
-
-    if (!this.hasKey) {
-      if (this.rectsOverlap(nextBounds, this.getLockedDoorBounds())) {
-        return
-      }
-    }
-
-    this.player.x = nextX
-    this.player.y = nextY
-  }
-
-  updateDutyTeacher(dt) {
-    if (this.dutyTeacherDefeated) {
-      this.dutyTeacherVisionCone.setVisible(false)
-      return
-    }
-
-    this.dutyTeacher.x += this.dutyTeacher.speed * this.dutyTeacher.direction * dt
-    this.dutyTeacherFacing = this.dutyTeacher.direction >= 0 ? 'right' : 'left'
-
-    if (this.dutyTeacher.x <= this.dutyTeacher.leftLimit) {
-      this.dutyTeacher.x = this.dutyTeacher.leftLimit
-      this.dutyTeacher.direction = 1
-      this.dutyTeacherFacing = 'right'
-    }
-
-    if (this.dutyTeacher.x >= this.dutyTeacher.rightLimit) {
-      this.dutyTeacher.x = this.dutyTeacher.rightLimit
-      this.dutyTeacher.direction = -1
-      this.dutyTeacherFacing = 'left'
-    }
-
-    this.updateDutyTeacherVisionCone()
-    this.dutyTeacherShadow.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 17)
-    this.dutyTeacherBody.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 1)
-    this.dutyTeacherShirt.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 2)
-    this.dutyTeacherTie.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 1)
-    this.dutyTeacherHead.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 16)
-    this.dutyTeacherHair.setPosition(this.dutyTeacher.x, this.dutyTeacher.y - 22)
-    this.dutyTeacherBlazer.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 4)
-    this.dutyTeacherBadge.setPosition(this.dutyTeacher.x + 6, this.dutyTeacher.y + 1)
-    this.dutyTeacherClipboard.setPosition(this.dutyTeacher.x - 11, this.dutyTeacher.y + 4)
-    this.dutyTeacherArms.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 2)
-    this.dutyTeacherShoes.setPosition(this.dutyTeacher.x, this.dutyTeacher.y + 15)
-    this.dutyTeacherMarker.setPosition(
-      this.dutyTeacherFacing === 'right' ? this.dutyTeacher.x + 8 : this.dutyTeacher.x - 8,
-      this.dutyTeacher.y - 15
-    )
-    this.dutyTeacherLabel.setPosition(this.dutyTeacher.x - 36, this.dutyTeacher.y - 46)
-  }
-
-  startAttack() {
-    this.attackTimer = this.attackDuration
-    this.attackCooldownTimer = this.attackCooldown
-    this.attackHasHit = false
-    this.attackSwish.setAlpha(1)
-    this.attackSwish.setVisible(true)
-    this.updateAttackSwish()
-  }
-
-  updateAttack(delta) {
-    if (this.attackCooldownTimer > 0) {
-      this.attackCooldownTimer -= delta
-
-      if (this.attackCooldownTimer < 0) {
-        this.attackCooldownTimer = 0
-      }
-    }
-
-    if (this.attackTimer <= 0) {
-      this.attackSwish.setVisible(false)
-      return
-    }
-
-    this.attackTimer -= delta
-    this.updateAttackSwish()
-
-    if (this.attackTimer <= 0) {
-      this.attackTimer = 0
-      this.attackSwish.setVisible(false)
-    }
-  }
-
-  updateAttackSwish() {
-    const offset = 24
-    let swishX = this.player.x
-    let swishY = this.player.y
-    let swishWidth = 24
-    let swishHeight = 14
-
-    if (this.playerFacing === 'left') {
-      swishX -= offset
-      swishWidth = 20
-      swishHeight = 26
-    } else if (this.playerFacing === 'right') {
-      swishX += offset
-      swishWidth = 20
-      swishHeight = 26
-    } else if (this.playerFacing === 'up') {
-      swishY -= offset
-      swishWidth = 26
-      swishHeight = 20
+    if (direction.lengthSq() > 0) {
+      direction.normalize()
+      this.player.body.setVelocity(
+        direction.x * this.playerSpeed,
+        direction.y * this.playerSpeed
+      )
     } else {
-      swishY += offset
-      swishWidth = 26
-      swishHeight = 20
-    }
-
-    this.attackSwish.setPosition(swishX, swishY)
-    this.attackSwish.setSize(swishWidth, swishHeight)
-    this.attackSwish.setDisplaySize(swishWidth, swishHeight)
-  }
-
-  checkCoinPickup(coinShape, flagName) {
-    if (this[flagName]) {
-      return
-    }
-
-    const distance = Phaser.Math.Distance.Between(
-      this.player.x,
-      this.player.y,
-      coinShape.x,
-      coinShape.y
-    )
-
-    if (distance < 22) {
-      this[flagName] = true
-      coinShape.setVisible(false)
-      this.score += 1
-      this.updateHud()
-      this.showMessage('Gold collected!')
+      this.player.body.setVelocity(0, 0)
     }
   }
 
-  checkKeyPickup() {
-    if (this.hasKey || !this.key.visible) {
-      return
-    }
-
-    const distance = Phaser.Math.Distance.Between(
-      this.player.x,
-      this.player.y,
-      this.key.x,
-      this.key.y
-    )
-
-    if (distance < 28) {
-      this.hasKey = true
-      this.key.setVisible(false)
-      this.updateHud()
-      this.updateDoorLook()
-      this.showMessage('You got the key!')
-    }
+  createGeneratedTextures() {
+    this.createTilesetTexture()
+    this.createPlayerTexture()
   }
 
-  checkAttackHit() {
-    if (this.dutyTeacherDefeated || this.attackTimer <= 0 || this.attackHasHit) {
+  createTilesetTexture() {
+    if (this.textures.exists('generated-tiles')) {
       return
     }
 
-    const attackBounds = this.attackSwish.getBounds()
+    const size = this.tileSize
+    const graphics = this.make.graphics({ x: 0, y: 0, add: false })
 
-    if (this.rectsOverlap(attackBounds, this.getTeacherBounds())) {
-      this.attackHasHit = true
-      this.defeatDutyTeacher()
-    }
+    graphics.fillStyle(0xc2b280)
+    graphics.fillRect(0, 0, size, size)
+    graphics.fillStyle(0xb09c69)
+    graphics.fillRect(0, size - 4, size, 4)
+    graphics.fillStyle(0xd8cc9d)
+    graphics.fillRect(0, 0, size, 3)
+
+    graphics.fillStyle(0xb09c69)
+    graphics.fillRect(size, 0, size, size)
+    graphics.fillStyle(0xcdbb89)
+    graphics.fillRect(size + 3, 3, size - 6, size - 6)
+    graphics.fillStyle(0x9b8758)
+    graphics.fillRect(size, size - 4, size, 4)
+
+    graphics.fillStyle(0x9f9389)
+    graphics.fillRect(size * 2, 0, size, size)
+    graphics.fillStyle(0xcfc5bc)
+    graphics.fillRect(size * 2, 0, size, 4)
+    graphics.fillStyle(0x73685f)
+    graphics.fillRect(size * 2, size - 4, size, 4)
+
+    graphics.fillStyle(0x86796f)
+    graphics.fillRect(size * 3, 0, size, size)
+    graphics.fillStyle(0xb6aba2)
+    graphics.fillRect(size * 3, 0, size, 3)
+    graphics.fillStyle(0x625750)
+    graphics.fillRect(size * 3 + 3, 5, size - 6, size - 8)
+
+    graphics.fillStyle(0x7a4a2d)
+    graphics.fillRect(0, size, size, size)
+    graphics.fillStyle(0x9f6942)
+    graphics.fillRect(3, size + 3, size - 6, size - 6)
+    graphics.fillStyle(0xc38a56)
+    graphics.fillRect(0, size, size, 3)
+
+    graphics.fillStyle(0x6f8f5f)
+    graphics.fillRect(size, size, size, size)
+    graphics.fillStyle(0x4a673e)
+    graphics.fillRect(size + 2, size + 2, size - 4, size - 4)
+    graphics.fillStyle(0x91b07a)
+    graphics.fillRect(size + 4, size + 4, size - 8, size - 8)
+
+    graphics.fillStyle(0x6b5a4a)
+    graphics.fillRect(size * 2, size, size, size)
+    graphics.fillStyle(0x8d7a66)
+    graphics.fillRect(size * 2 + 2, size + 2, size - 4, size - 4)
+    graphics.fillStyle(0xcfbe9f)
+    graphics.fillRect(size * 2 + 4, size + 4, size - 8, 3)
+
+    graphics.fillStyle(0x6b5f8f)
+    graphics.fillRect(size * 3, size, size, size)
+    graphics.fillStyle(0x534a70)
+    graphics.fillRect(size * 3, size + 10, size, 6)
+    graphics.fillStyle(0xb4a5d5)
+    graphics.fillRect(size * 3 + 3, size + 3, size - 6, 4)
+
+    graphics.fillStyle(0x5f5f6b)
+    graphics.fillRect(0, size * 2, size, size)
+    graphics.fillStyle(0x908c96)
+    graphics.fillRect(4, size * 2 + 4, size - 8, size - 8)
+
+    graphics.fillStyle(0x2f4e6d)
+    graphics.fillRect(size, size * 2, size, size)
+    graphics.fillStyle(0x4f78a1)
+    graphics.fillRect(size + 2, size * 2 + 2, size - 4, size - 4)
+    graphics.fillStyle(0xbfd8f0)
+    graphics.fillRect(size + 4, size * 2 + 4, size - 8, size - 8)
+
+    graphics.generateTexture('generated-tiles', size * 4, size * 4)
+    graphics.destroy()
   }
 
-  defeatDutyTeacher() {
-    this.dutyTeacherDefeated = true
-    this.dutyTeacherVisionCone.setVisible(false)
-    this.dutyTeacherBody.setVisible(false)
-    this.dutyTeacherShadow.setVisible(false)
-    this.dutyTeacherShirt.setVisible(false)
-    this.dutyTeacherTie.setVisible(false)
-    this.dutyTeacherHead.setVisible(false)
-    this.dutyTeacherHair.setVisible(false)
-    this.dutyTeacherBlazer.setVisible(false)
-    this.dutyTeacherBadge.setVisible(false)
-    this.dutyTeacherClipboard.setVisible(false)
-    this.dutyTeacherArms.setVisible(false)
-    this.dutyTeacherShoes.setVisible(false)
-    this.dutyTeacherMarker.setVisible(false)
-    this.dutyTeacherLabel.setVisible(false)
-    this.spawnKey(this.dutyTeacher.x + 10, this.dutyTeacher.y)
-    this.showMessage('You got past the Duty Teacher!')
+  createPlayerTexture() {
+    if (this.textures.exists('player-tile')) {
+      return
+    }
+
+    const size = this.tileSize
+    const graphics = this.make.graphics({ x: 0, y: 0, add: false })
+
+    graphics.fillStyle(0x000000, 0.18)
+    graphics.fillEllipse(size / 2, size - 2, 10, 4)
+
+    graphics.fillStyle(0xffd4b2)
+    graphics.fillRect(4, 1, 8, 6)
+    graphics.fillStyle(0x6d452c)
+    graphics.fillRect(3, 0, 10, 3)
+
+    graphics.fillStyle(0xb44343)
+    graphics.fillRect(3, 7, 10, 5)
+    graphics.fillStyle(0xffffff)
+    graphics.fillRect(6, 6, 4, 2)
+    graphics.fillStyle(0x5d647a)
+    graphics.fillRect(4, 12, 8, 2)
+    graphics.fillStyle(0x3b2b24)
+    graphics.fillRect(4, 14, 3, 2)
+    graphics.fillRect(9, 14, 3, 2)
+
+    graphics.generateTexture('player-tile', size, size)
+    graphics.destroy()
   }
 
-  spawnKey(x, y) {
-    this.key.setPosition(x, y)
-    this.key.setVisible(true)
-  }
+  buildLevelData() {
+    const floorData = this.createEmptyLayer()
+    const wallData = this.createEmptyLayer()
+    const decorationData = this.createEmptyLayer()
 
-  checkDutyTeacherTouch() {
-    if (this.dutyTeacherDefeated) {
-      return
-    }
+    const startRoom = { x: 4, y: 8, width: 14, height: 12 }
+    const topRoom = { x: 28, y: 6, width: 16, height: 12 }
+    const bottomRoom = { x: 48, y: 26, width: 18, height: 14 }
+    const corridorA = { x: 18, y: 12, width: 10, height: 4 }
+    const corridorB = { x: 36, y: 16, width: 4, height: 12 }
+    const corridorC = { x: 40, y: 26, width: 8, height: 4 }
 
-    if (this.isHiding) {
-      return
-    }
+    const rooms = [startRoom, topRoom, bottomRoom, corridorA, corridorB, corridorC]
 
-    if (this.caughtCooldownTimer > 0) {
-      return
-    }
-
-    if (this.isPlayerInTeacherVisionCone()) {
-      this.catchPlayer()
-      return
-    }
-
-    const touching = this.rectsOverlap(this.getPlayerBounds(), this.getTeacherBounds())
-
-    if (!touching) {
-      return
-    }
-
-    this.catchPlayer()
-  }
-
-  catchPlayer() {
-    this.caughtCooldownTimer = this.caughtCooldownDuration
-    this.lives -= 1
-    this.updateLivesUi()
-    this.showMessage('Caught!')
-
-    if (this.lives > 0) {
-      this.player.x = this.playerStartX
-      this.player.y = this.playerStartY
-      this.updatePlayerLook()
-      return
-    }
-
-    this.triggerGameOver()
-  }
-
-  checkExit() {
-    const exitZone = new Phaser.Geom.Rectangle(
-      this.exit.x - this.exit.width / 2 - 10,
-      this.exit.y - this.exit.height / 2,
-      this.exit.width + 20,
-      this.exit.height
-    )
-
-    const touchingExit = this.rectsOverlap(this.getPlayerBounds(), exitZone)
-
-    if (!touchingExit) {
-      this.wasTouchingExit = false
-      return
-    }
-
-    if (this.hasKey) {
-      this.hasExited = true
-      this.updateDoorLook()
-      this.showMessage('Unlocked! Home time!')
-      this.restartText.setText('Press R to restart')
-      this.restartText.setVisible(true)
-    } else if (!this.wasTouchingExit) {
-      this.showMessage('Door is locked.')
-    }
-
-    this.wasTouchingExit = true
-  }
-
-  updateMessage(delta) {
-    if (this.messageFadeTimer) {
-      this.messageFadeTimer -= delta
-
-      if (this.messageFadeTimer <= 0) {
-        this.messageFadeTimer = 0
-        this.messageBox.setVisible(false)
-        this.messageText.setVisible(false)
-      }
-    }
-  }
-
-  showMessage(text) {
-    if (this.messageTween) {
-      this.messageTween.stop()
-    }
-
-    this.messageText.setText(text)
-    this.messageText.setAlpha(1)
-    this.messageText.setVisible(true)
-
-    const textWidth = this.messageText.width
-    this.messageBox.width = textWidth + 32
-    this.messageBox.setAlpha(1)
-    this.messageBox.setVisible(true)
-
-    this.messageFadeTimer = 1000
-
-    this.messageTween = this.tweens.add({
-      targets: [this.messageBox, this.messageText],
-      alpha: 0,
-      duration: 1000,
-      ease: 'Sine.easeOut'
+    rooms.forEach((room) => {
+      this.paintFloorArea(floorData, room.x, room.y, room.width, room.height)
     })
-  }
 
-  updateHud() {
-    this.scoreText.setText(`Gold: ${this.score} / 2`)
-    this.keyStatusText.setText(this.hasKey ? 'Key: Found' : 'Key: Missing')
-    this.keyBadge.setFillStyle(this.hasKey ? 0xcff4d7 : 0xd8eef8)
-    this.keyBadge.setStrokeStyle(2, this.hasKey ? 0x2d7a41 : 0x3e7998)
-    this.keyStatusText.setColor(this.hasKey ? '#215b30' : '#16435a')
-  }
+    this.buildWallLayer(floorData, wallData)
+    this.paintDecorations(decorationData, startRoom, topRoom, bottomRoom)
 
-  updateDoorLook() {
-    if (this.hasKey) {
-      this.exitArch.setFillStyle(0x2d6940)
-      this.exitFrame.setFillStyle(0x265b34)
-      this.exitDoor.setFillStyle(0x5ccb6c)
-      this.exitDoor.setStrokeStyle(2, 0x1f5c31)
-      this.exitDoor.setPosition(this.exit.x - 18, this.exit.y - 2)
-      this.exitDoorPanel.setPosition(this.exit.x - 18, this.exit.y + 8)
-      this.exitDoorPanel.setFillStyle(0x78d785)
-      this.exitHandle.setPosition(this.exit.x - 12, this.exit.y)
-      this.exitHandle.setFillStyle(0xfff1a8)
-      this.exitLockBar.setVisible(false)
-      this.exitOpenGlow.setVisible(true)
-      this.exitGlowShadow.setVisible(false)
-      this.exitWindow.setPosition(this.exit.x - 18, this.exit.y - 24)
-      this.exitWindow.setFillStyle(0xe7ffd1, 0.95)
-      this.exitStep.setFillStyle(0xa8c39e)
-      this.exitMat.setFillStyle(0x3b8f55)
-    } else {
-      this.exitArch.setFillStyle(0x6f4123)
-      this.exitFrame.setFillStyle(0x58341d)
-      this.exitDoor.setFillStyle(0x915533)
-      this.exitDoor.setStrokeStyle(2, 0x59371c)
-      this.exitDoor.setPosition(this.exit.x - 3, this.exit.y)
-      this.exitDoorPanel.setPosition(this.exit.x - 3, this.exit.y + 8)
-      this.exitDoorPanel.setFillStyle(0xa66c36)
-      this.exitHandle.setPosition(this.exit.x + 2, this.exit.y)
-      this.exitHandle.setFillStyle(0xffd54f)
-      this.exitLockBar.setVisible(true)
-      this.exitOpenGlow.setVisible(false)
-      this.exitGlowShadow.setVisible(true)
-      this.exitWindow.setPosition(this.exit.x - 3, this.exit.y - 24)
-      this.exitWindow.setFillStyle(0x8fc8e8, 0.8)
-      this.exitStep.setFillStyle(0x8e989d)
-      this.exitMat.setFillStyle(0x74455c)
+    return {
+      floorData,
+      wallData,
+      decorationData,
+      playerStart: {
+        x: (startRoom.x + 3) * this.tileSize + this.tileSize / 2,
+        y: (startRoom.y + 5) * this.tileSize + this.tileSize / 2
+      }
     }
   }
 
-  updateDutyTeacherVisionCone() {
-    const triangle = this.getDutyTeacherVisionTriangle()
-
-    this.dutyTeacherVisionCone.clear()
-    this.dutyTeacherVisionCone.setVisible(true)
-    this.dutyTeacherVisionCone.fillStyle(0xfff0a8, 0.22)
-    this.dutyTeacherVisionCone.lineStyle(2, 0xe8aa3b, 0.65)
-    this.dutyTeacherVisionCone.fillTriangleShape(triangle)
-    this.dutyTeacherVisionCone.strokeTriangleShape(triangle)
+  createEmptyLayer() {
+    return Array.from({ length: this.mapHeight }, () => Array(this.mapWidth).fill(-1))
   }
 
-  updatePlayerLook() {
-    this.playerShadow.setPosition(this.player.x, this.player.y + 18)
-    this.playerBody.setPosition(this.player.x, this.player.y + 1)
-    this.playerCollar.setPosition(this.player.x, this.player.y - 8)
-    this.playerShorts.setPosition(this.player.x, this.player.y + 12)
-    this.playerHead.setPosition(this.player.x, this.player.y - 15)
-    this.playerHair.setPosition(this.player.x, this.player.y - 22)
-    this.playerArms.setPosition(this.player.x, this.player.y + 1)
-    this.playerBag.setPosition(this.player.x + 8, this.player.y + 5)
-    this.playerSocks.setPosition(this.player.x, this.player.y + 17)
-    this.playerShoes.setPosition(this.player.x, this.player.y + 21)
+  paintFloorArea(layer, startX, startY, width, height) {
+    for (let y = startY; y < startY + height; y += 1) {
+      for (let x = startX; x < startX + width; x += 1) {
+        layer[y][x] = (x + y) % 2 === 0 ? 0 : 1
+      }
+    }
+  }
 
-    let markerX = this.player.x
-    let markerY = this.player.y - 10
-    let markerWidth = 10
-    let markerHeight = 4
+  buildWallLayer(floorData, wallData) {
+    for (let y = 0; y < this.mapHeight; y += 1) {
+      for (let x = 0; x < this.mapWidth; x += 1) {
+        if (floorData[y][x] !== -1) {
+          continue
+        }
 
-    if (this.playerFacing === 'left') {
-      markerX = this.player.x - 7
-      markerWidth = 4
-      markerHeight = 10
-    } else if (this.playerFacing === 'right') {
-      markerX = this.player.x + 7
-      markerWidth = 4
-      markerHeight = 10
-    } else if (this.playerFacing === 'up') {
-      markerY = this.player.y - 15
-      markerWidth = 10
-      markerHeight = 4
-    } else {
-      markerY = this.player.y - 6
-      markerWidth = 10
-      markerHeight = 4
+        const nearFloor = this.getNeighborFloorCount(floorData, x, y)
+
+        if (nearFloor === 0) {
+          continue
+        }
+
+        const floorAbove = this.isFloor(floorData, x, y + 1)
+        wallData[y][x] = floorAbove ? 2 : 3
+      }
+    }
+  }
+
+  getNeighborFloorCount(floorData, x, y) {
+    let count = 0
+
+    for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+      for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+        if (offsetX === 0 && offsetY === 0) {
+          continue
+        }
+
+        if (this.isFloor(floorData, x + offsetX, y + offsetY)) {
+          count += 1
+        }
+      }
     }
 
-    this.playerFaceMarker.setPosition(markerX, markerY)
-    this.playerFaceMarker.setSize(markerWidth, markerHeight)
-    this.playerFaceMarker.setDisplaySize(markerWidth, markerHeight)
+    return count
   }
 
-  updateHidingUi() {
-    const inCubbyZone = this.rectsOverlap(this.getPlayerBounds(), this.cubbyZone)
-    this.hiddenText.setPosition(this.player.x, this.player.y - 34)
-    this.hiddenText.setVisible(this.isHiding || inCubbyZone)
-    this.hiddenText.setText(this.isHiding ? 'Hidden' : 'Press SHIFT to hide')
+  isFloor(floorData, x, y) {
+    if (x < 0 || y < 0 || x >= this.mapWidth || y >= this.mapHeight) {
+      return false
+    }
+
+    return floorData[y][x] !== -1
   }
 
-  setPlayerAlpha(alpha) {
-    this.playerShadow.setAlpha(alpha)
-    this.playerBody.setAlpha(alpha)
-    this.playerCollar.setAlpha(alpha)
-    this.playerShorts.setAlpha(alpha)
-    this.playerHead.setAlpha(alpha)
-    this.playerHair.setAlpha(alpha)
-    this.playerArms.setAlpha(alpha)
-    this.playerBag.setAlpha(alpha)
-    this.playerSocks.setAlpha(alpha)
-    this.playerShoes.setAlpha(alpha)
-    this.playerFaceMarker.setAlpha(alpha)
+  paintDecorations(layer, startRoom, topRoom, bottomRoom) {
+    this.paintDecorationRect(layer, startRoom.x + 2, startRoom.y + 2, 2, 1, 4)
+    this.paintDecorationRect(layer, startRoom.x + 2, startRoom.y + 5, 2, 1, 4)
+    this.paintDecorationRect(layer, startRoom.x + 9, startRoom.y + 2, 3, 2, 6)
+    this.paintDecorationRect(layer, topRoom.x + 10, topRoom.y + 2, 3, 2, 4)
+    this.paintDecorationRect(layer, bottomRoom.x + 2, bottomRoom.y + 2, 1, 3, 5)
+    this.paintDecorationRect(layer, bottomRoom.x + 11, bottomRoom.y + 8, 3, 2, 6)
+
+    layer[startRoom.y + 4][startRoom.x + 6] = 7
+    layer[topRoom.y + 3][topRoom.x + 3] = 5
+    layer[bottomRoom.y + 4][bottomRoom.x + 8] = 9
   }
 
-  updateLivesUi() {
-    this.hearts.forEach((heart, index) => {
-      heart.setVisible(index < this.lives)
+  paintDecorationRect(layer, startX, startY, width, height, tileIndex) {
+    for (let y = startY; y < startY + height; y += 1) {
+      for (let x = startX; x < startX + width; x += 1) {
+        layer[y][x] = tileIndex
+      }
+    }
+  }
+
+  createTilemap(level) {
+    this.map = this.make.tilemap({
+      tileWidth: this.tileSize,
+      tileHeight: this.tileSize,
+      width: this.mapWidth,
+      height: this.mapHeight
     })
+
+    const tileset = this.map.addTilesetImage('generated-tiles', 'generated-tiles', this.tileSize, this.tileSize)
+
+    this.floorLayer = this.map.createBlankLayer('floor', tileset)
+    this.wallLayer = this.map.createBlankLayer('walls', tileset)
+    this.decorationLayer = this.map.createBlankLayer('decorations', tileset)
+
+    this.floorLayer.putTilesAt(level.floorData, 0, 0)
+    this.wallLayer.putTilesAt(level.wallData, 0, 0)
+    this.decorationLayer.putTilesAt(level.decorationData, 0, 0)
+
+    this.wallLayer.setCollisionByExclusion([-1])
   }
 
-  triggerGameOver() {
-    this.isGameOver = true
-    this.gameOverText.setVisible(true)
-    this.restartText.setText('Press R to restart')
-    this.restartText.setVisible(true)
+  createPlayer(startPosition) {
+    this.player = this.physics.add.sprite(startPosition.x, startPosition.y, 'player-tile')
+    this.player.setCollideWorldBounds(true)
+    this.player.body.setSize(10, 10)
+    this.player.body.setOffset(3, 5)
+
+    this.physics.add.collider(this.player, this.wallLayer)
   }
 
-  getDutyTeacherVisionTriangle() {
-    const coneLength = 110
-    const coneHalfHeight = 52
-    const startX = this.dutyTeacherFacing === 'right'
-      ? this.dutyTeacher.x + 10
-      : this.dutyTeacher.x - 10
-    const tipX = this.dutyTeacherFacing === 'right'
-      ? startX + coneLength
-      : startX - coneLength
-    const centerY = this.dutyTeacher.y + 1
+  createCamera() {
+    const mapPixelWidth = this.mapWidth * this.tileSize
+    const mapPixelHeight = this.mapHeight * this.tileSize
 
-    return new Phaser.Geom.Triangle(
-      startX,
-      centerY,
-      tipX,
-      centerY - coneHalfHeight,
-      tipX,
-      centerY + coneHalfHeight
-    )
-  }
+    this.cameras.main.setBounds(0, 0, mapPixelWidth, mapPixelHeight)
+    this.cameras.main.startFollow(this.player, true, 0.12, 0.12)
+    this.cameras.main.setZoom(2)
+    this.cameras.main.roundPixels = true
 
-  isPlayerInTeacherVisionCone() {
-    const playerCenterX = this.player.x
-    const playerCenterY = this.player.y
-
-    return Phaser.Geom.Triangle.Contains(
-      this.getDutyTeacherVisionTriangle(),
-      playerCenterX,
-      playerCenterY
-    )
-  }
-
-  getPlayerBounds() {
-    return new Phaser.Geom.Rectangle(
-      this.player.x - this.player.width / 2,
-      this.player.y - this.player.height / 2,
-      this.player.width,
-      this.player.height
-    )
-  }
-
-  getTeacherBounds() {
-    return new Phaser.Geom.Rectangle(
-      this.dutyTeacher.x - this.dutyTeacher.width / 2,
-      this.dutyTeacher.y - this.dutyTeacher.height / 2,
-      this.dutyTeacher.width,
-      this.dutyTeacher.height
-    )
-  }
-
-  getLockedDoorBounds() {
-    return new Phaser.Geom.Rectangle(
-      this.lockedDoorBlock.x,
-      this.lockedDoorBlock.y,
-      this.lockedDoorBlock.width,
-      this.lockedDoorBlock.height
-    )
-  }
-
-  rectsOverlap(rectA, rectB) {
-    return Phaser.Geom.Intersects.RectangleToRectangle(rectA, rectB)
+    this.physics.world.setBounds(0, 0, mapPixelWidth, mapPixelHeight)
   }
 }
