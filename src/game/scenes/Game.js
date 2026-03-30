@@ -36,6 +36,10 @@ export default class Game extends Phaser.Scene {
     })
 
     this.load.image(this.tilesetKey, this.tilesetPath)
+    this.load.spritesheet('player', 'assets/char_red_1.png', {
+      frameWidth: 56,
+      frameHeight: 56
+    })
   }
 
   create() {
@@ -86,6 +90,7 @@ export default class Game extends Phaser.Scene {
       return
     }
 
+    this.createPlayerAnimations()
     this.createPlayer(level.playerStart)
     this.createCamera()
 
@@ -129,8 +134,11 @@ export default class Game extends Phaser.Scene {
         direction.x * this.playerSpeed,
         direction.y * this.playerSpeed
       )
+      this.player.anims.play('walk', true)
     } else {
       this.player.body.setVelocity(0, 0)
+      this.player.anims.stop()
+      this.player.setFrame(0)
     }
   }
 
@@ -310,6 +318,22 @@ export default class Game extends Phaser.Scene {
     console.info('[Game] Tilemap layers created successfully')
   }
 
+  createPlayerAnimations() {
+    if (this.anims.exists('walk')) {
+      return
+    }
+
+    this.anims.create({
+      key: 'walk',
+      frames: this.anims.generateFrameNumbers('player', {
+        start: 0,
+        end: 7
+      }),
+      frameRate: 10,
+      repeat: -1
+    })
+  }
+
   createPlayer(startPosition) {
     console.info('[Game] Creating player', startPosition)
 
@@ -321,12 +345,12 @@ export default class Game extends Phaser.Scene {
       return
     }
 
-    this.player = this.add.rectangle(startPosition.x, startPosition.y, 12, 12, 0xe08a5b)
-      .setStrokeStyle(2, 0x2a1b14)
+    this.player = this.physics.add.sprite(startPosition.x, startPosition.y, 'player', 0)
+    this.player.setScale(0.4)
+    this.player.setDepth(10)
 
-    this.physics.add.existing(this.player)
-
-    this.player.body.setSize(12, 12)
+    this.player.body.setSize(20, 18)
+    this.player.body.setOffset(18, 30)
     this.player.body.setCollideWorldBounds(true)
     this.player.body.setDrag(1200, 1200)
     this.player.body.setMaxVelocity(this.playerSpeed, this.playerSpeed)
