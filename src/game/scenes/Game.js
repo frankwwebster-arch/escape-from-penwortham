@@ -127,18 +127,33 @@ export default class Game extends Phaser.Scene {
     }
 
     const direction = new Phaser.Math.Vector2(moveX, moveY)
+    const isMoving = direction.lengthSq() > 0
 
-    if (direction.lengthSq() > 0) {
+    if (moveX < 0) {
+      this.player.setFlipX(true)
+    } else if (moveX > 0) {
+      this.player.setFlipX(false)
+    }
+
+    if (isMoving) {
       direction.normalize()
       this.player.body.setVelocity(
         direction.x * this.playerSpeed,
         direction.y * this.playerSpeed
       )
-      this.player.anims.play('walk', true)
+
+      if (!this.player.isWalking) {
+        this.player.isWalking = true
+        this.player.anims.play('walk')
+      }
     } else {
       this.player.body.setVelocity(0, 0)
-      this.player.anims.stop()
-      this.player.setFrame(0)
+
+      if (this.player.isWalking) {
+        this.player.isWalking = false
+        this.player.anims.stop()
+        this.player.setFrame(this.playerIdleFrame)
+      }
     }
   }
 
@@ -327,7 +342,7 @@ export default class Game extends Phaser.Scene {
       key: 'walk',
       frames: this.anims.generateFrameNumbers('player', {
         start: 0,
-        end: 7
+        end: 5
       }),
       frameRate: 10,
       repeat: -1
@@ -348,12 +363,15 @@ export default class Game extends Phaser.Scene {
     this.player = this.physics.add.sprite(startPosition.x, startPosition.y, 'player', 0)
     this.player.setScale(0.4)
     this.player.setDepth(10)
+    this.playerIdleFrame = 0
+    this.player.isWalking = false
 
     this.player.body.setSize(20, 18)
     this.player.body.setOffset(18, 30)
     this.player.body.setCollideWorldBounds(true)
     this.player.body.setDrag(1200, 1200)
     this.player.body.setMaxVelocity(this.playerSpeed, this.playerSpeed)
+    this.player.setFrame(this.playerIdleFrame)
 
     this.physics.add.collider(this.player, this.wallLayer)
 
