@@ -5,11 +5,27 @@ export default class Game extends Phaser.Scene {
     super('Game')
 
     this.tileSize = 16
-    this.tilesetKey = 'dungeon-tiles'
-    this.tilesetPath = 'assets/dungeon-tileset.png'
-    this.mapWidth = 100
-    this.mapHeight = 70
+    this.mapWidth = 96
+    this.mapHeight = 64
     this.playerSpeed = 120
+
+    this.tilesetKey = 'dungeon-tiles'
+    this.tilesetPath = 'assets/darkdungeon_tileset_allinone.png'
+
+    // These tile ids assume the provided sheet is a 21-column 16x16 tileset,
+    // matching the uploaded reference image. If your exported PNG differs,
+    // adjust these ids instead of changing the scene structure.
+    this.tileIds = {
+      floorA: 378,
+      floorB: 379,
+      wallTop: 84,
+      wallFace: 105,
+      wallPillar: 106,
+      decoTorch: 177,
+      decoBanner: 651,
+      decoShelf: 694,
+      decoCrate: 680
+    }
   }
 
   preload() {
@@ -34,19 +50,28 @@ export default class Game extends Phaser.Scene {
       return
     }
 
-    const level = this.buildLevelData()
-    const texture = this.textures.get(this.tilesetKey).getSourceImage()
-    const tileCount = Math.floor(texture.width / this.tileSize) * Math.floor(texture.height / this.tileSize)
-    const maxTileIndex = this.getMaxTileIndex(level)
+    const tilesetImage = this.textures.get(this.tilesetKey).getSourceImage()
+
+    if (!tilesetImage || !tilesetImage.width || !tilesetImage.height) {
+      this.showSceneError(
+        'Invalid tileset image',
+        'The loaded tileset image has no usable dimensions.'
+      )
+      return
+    }
 
     console.info(
-      `[Game] Tileset size ${texture.width}x${texture.height}, tile size ${this.tileSize}, tile count ${tileCount}`
+      `[Game] Tileset loaded: ${tilesetImage.width}x${tilesetImage.height}, tile size ${this.tileSize}`
     )
+
+    const level = this.buildLevelData()
+    const tileCount = Math.floor(tilesetImage.width / this.tileSize) * Math.floor(tilesetImage.height / this.tileSize)
+    const maxTileIndex = this.getMaxTileIndex(level)
 
     if (maxTileIndex >= tileCount) {
       this.showSceneError(
-        'Tileset does not contain enough tiles',
-        `Highest tile index used is ${maxTileIndex}, but the tileset only has ${tileCount} tiles.`
+        'Tile index out of range',
+        `Highest tile index used is ${maxTileIndex}, but the tileset only contains ${tileCount} tiles.`
       )
       return
     }
@@ -55,8 +80,8 @@ export default class Game extends Phaser.Scene {
 
     if (!this.floorLayer || !this.wallLayer || !this.decorationLayer) {
       this.showSceneError(
-        'Layer creation failed',
-        'One or more tilemap layers could not be created. Check the tileset PNG and layer setup.'
+        'Tilemap layer creation failed',
+        'Check the tileset image key, tile size, and createBlankLayer setup.'
       )
       return
     }
@@ -104,34 +129,32 @@ export default class Game extends Phaser.Scene {
   }
 
   buildLevelData() {
-    const floor = this.createEmptyLayer()
-    const walls = this.createEmptyLayer()
-    const decorations = this.createEmptyLayer()
+    const floorData = this.createEmptyLayer()
+    const wallData = this.createEmptyLayer()
+    const decorationData = this.createEmptyLayer()
 
-    const startRoom = { x: 6, y: 8, width: 18, height: 14 }
-    const topRoom = { x: 34, y: 6, width: 18, height: 14 }
-    const bottomRoom = { x: 56, y: 28, width: 22, height: 18 }
+    const startRoom = { x: 6, y: 10, width: 16, height: 12 }
+    const corridor = { x: 22, y: 14, width: 18, height: 4 }
+    const topRoom = { x: 40, y: 8, width: 18, height: 12 }
+    const verticalLink = { x: 48, y: 20, width: 4, height: 14 }
+    const bottomRoom = { x: 34, y: 34, width: 22, height: 14 }
 
-    const corridorA = { x: 24, y: 13, width: 10, height: 4 }
-    const corridorB = { x: 42, y: 20, width: 4, height: 12 }
-    const corridorC = { x: 46, y: 30, width: 10, height: 4 }
-
-    const walkableAreas = [startRoom, topRoom, bottomRoom, corridorA, corridorB, corridorC]
+    const walkableAreas = [startRoom, corridor, topRoom, verticalLink, bottomRoom]
 
     walkableAreas.forEach((area) => {
-      this.paintFloorArea(floor, area.x, area.y, area.width, area.height)
+      this.paintFloorArea(floorData, area.x, area.y, area.width, area.height)
     })
 
-    this.buildWallLayer(floor, walls)
-    this.paintDecorations(decorations, startRoom, topRoom, bottomRoom)
+    this.buildWallLayer(floorData, wallData)
+    this.paintDecorations(decorationData, startRoom, topRoom, bottomRoom)
 
     return {
-      floor,
-      walls,
-      decorations,
+      floorData,
+      wallData,
+      decorationData,
       playerStart: {
-        x: (startRoom.x + 4) * this.tileSize + this.tileSize / 2,
-        y: (startRoom.y + 7) * this.tileSize + this.tileSize / 2
+        x: (startRoom.x + 3) * this.tileSize + this.tileSize / 2,
+        y: (startRoom.y + 6) * this.tileSize + this.tileSize / 2
       }
     }
   }
@@ -143,32 +166,39 @@ export default class Game extends Phaser.Scene {
   paintFloorArea(layer, startX, startY, width, height) {
     for (let y = startY; y < startY + height; y += 1) {
       for (let x = startX; x < startX + width; x += 1) {
-        layer[y][x] = (x + y) % 2 === 0 ? 0 : 1
+        layer[y][x] = (x + y) % 2 === 0 ? this.tileIds.floorA : this.tileIds.floorB
       }
     }
   }
 
-  buildWallLayer(floor, walls) {
+  buildWallLayer(floorData, wallData) {
     for (let y = 0; y < this.mapHeight; y += 1) {
       for (let x = 0; x < this.mapWidth; x += 1) {
-        if (floor[y][x] !== -1) {
+        if (floorData[y][x] !== -1) {
           continue
         }
 
-        const hasAdjacentFloor = this.countAdjacentFloorTiles(floor, x, y) > 0
+        const adjacentFloorCount = this.countAdjacentFloorTiles(floorData, x, y)
 
-        if (!hasAdjacentFloor) {
+        if (adjacentFloorCount === 0) {
           continue
         }
 
-        // These tile ids assume the first few tiles in the dungeon sheet include
-        // basic wall blocks. If your tileset differs, adjust these indices.
-        walls[y][x] = this.isFloor(floor, x, y + 1) ? 2 : 3
+        const floorBelow = this.isFloor(floorData, x, y + 1)
+        const floorAbove = this.isFloor(floorData, x, y - 1)
+
+        if (floorBelow) {
+          wallData[y][x] = this.tileIds.wallTop
+        } else if (floorAbove) {
+          wallData[y][x] = this.tileIds.wallFace
+        } else {
+          wallData[y][x] = this.tileIds.wallPillar
+        }
       }
     }
   }
 
-  countAdjacentFloorTiles(floor, x, y) {
+  countAdjacentFloorTiles(floorData, x, y) {
     let count = 0
 
     for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
@@ -177,7 +207,7 @@ export default class Game extends Phaser.Scene {
           continue
         }
 
-        if (this.isFloor(floor, x + offsetX, y + offsetY)) {
+        if (this.isFloor(floorData, x + offsetX, y + offsetY)) {
           count += 1
         }
       }
@@ -186,25 +216,23 @@ export default class Game extends Phaser.Scene {
     return count
   }
 
-  isFloor(floor, x, y) {
+  isFloor(floorData, x, y) {
     if (x < 0 || y < 0 || x >= this.mapWidth || y >= this.mapHeight) {
       return false
     }
 
-    return floor[y][x] !== -1
+    return floorData[y][x] !== -1
   }
 
   paintDecorations(layer, startRoom, topRoom, bottomRoom) {
-    this.paintDecorationRect(layer, startRoom.x + 2, startRoom.y + 2, 2, 1, 4)
-    this.paintDecorationRect(layer, startRoom.x + 2, startRoom.y + 5, 2, 1, 4)
-    this.paintDecorationRect(layer, startRoom.x + 11, startRoom.y + 2, 2, 2, 5)
+    this.paintDecorationRect(layer, startRoom.x + 3, startRoom.y + 2, 2, 1, this.tileIds.decoTorch)
+    this.paintDecorationRect(layer, startRoom.x + 10, startRoom.y + 2, 1, 1, this.tileIds.decoBanner)
 
-    this.paintDecorationRect(layer, topRoom.x + 10, topRoom.y + 2, 3, 2, 4)
-    this.paintDecorationRect(layer, topRoom.x + 3, topRoom.y + 3, 1, 1, 6)
+    this.paintDecorationRect(layer, topRoom.x + 2, topRoom.y + 2, 1, 1, this.tileIds.decoTorch)
+    this.paintDecorationRect(layer, topRoom.x + 12, topRoom.y + 3, 2, 1, this.tileIds.decoShelf)
 
-    this.paintDecorationRect(layer, bottomRoom.x + 2, bottomRoom.y + 2, 1, 3, 5)
-    this.paintDecorationRect(layer, bottomRoom.x + 12, bottomRoom.y + 9, 3, 2, 4)
-    this.paintDecorationRect(layer, bottomRoom.x + 8, bottomRoom.y + 4, 1, 1, 7)
+    this.paintDecorationRect(layer, bottomRoom.x + 3, bottomRoom.y + 2, 2, 1, this.tileIds.decoShelf)
+    this.paintDecorationRect(layer, bottomRoom.x + 14, bottomRoom.y + 8, 1, 1, this.tileIds.decoCrate)
   }
 
   paintDecorationRect(layer, startX, startY, width, height, tileIndex) {
@@ -216,7 +244,7 @@ export default class Game extends Phaser.Scene {
   }
 
   getMaxTileIndex(level) {
-    const layers = [level.floor, level.walls, level.decorations]
+    const layers = [level.floorData, level.wallData, level.decorationData]
     let maxIndex = -1
 
     layers.forEach((layer) => {
@@ -250,7 +278,7 @@ export default class Game extends Phaser.Scene {
     )
 
     if (!tileset) {
-      console.error('[Game] addTilesetImage returned null. Check the tileset key, tile size, and PNG.')
+      console.error('[Game] addTilesetImage returned null. The tileset key or tile size is wrong.')
       return
     }
 
@@ -259,31 +287,31 @@ export default class Game extends Phaser.Scene {
     this.decorationLayer = this.map.createBlankLayer('decorations', tileset, 0, 0, this.mapWidth, this.mapHeight)
 
     if (!this.floorLayer || !this.wallLayer || !this.decorationLayer) {
-      console.error('[Game] Failed to create one or more tilemap layers.')
+      console.error('[Game] Tilemap layer creation failed.', {
+        floorLayer: !!this.floorLayer,
+        wallLayer: !!this.wallLayer,
+        decorationLayer: !!this.decorationLayer
+      })
       return
     }
 
-    this.floorLayer.putTilesAt(level.floor, 0, 0)
-    this.wallLayer.putTilesAt(level.walls, 0, 0)
-    this.decorationLayer.putTilesAt(level.decorations, 0, 0)
+    this.floorLayer.putTilesAt(level.floorData, 0, 0)
+    this.wallLayer.putTilesAt(level.wallData, 0, 0)
+    this.decorationLayer.putTilesAt(level.decorationData, 0, 0)
 
     this.wallLayer.setCollisionByExclusion([-1])
 
-    console.info('[Game] Tilemap layers created:', {
-      floor: !!this.floorLayer,
-      walls: !!this.wallLayer,
-      decorations: !!this.decorationLayer
-    })
+    console.info('[Game] Tilemap layers created successfully')
   }
 
   createPlayer(startPosition) {
-    this.player = this.add.rectangle(startPosition.x, startPosition.y, 12, 12, 0xd87a58)
-      .setStrokeStyle(2, 0x2e1d1a)
+    this.player = this.add.rectangle(startPosition.x, startPosition.y, 12, 12, 0xe08a5b)
+      .setStrokeStyle(2, 0x2a1b14)
 
     this.physics.add.existing(this.player)
 
-    this.player.body.setCollideWorldBounds(true)
     this.player.body.setSize(12, 12)
+    this.player.body.setCollideWorldBounds(true)
 
     this.physics.add.collider(this.player, this.wallLayer)
   }
@@ -313,9 +341,9 @@ export default class Game extends Phaser.Scene {
       fontFamily: 'Arial',
       fontSize: '16px',
       color: '#ffffff',
-      wordWrap: { width: 760 }
+      wordWrap: { width: 780 }
     })
 
-    // Fail loudly instead of silently leaving a blank background.
+    // Fail loudly instead of silently leaving only the background visible.
   }
 }
